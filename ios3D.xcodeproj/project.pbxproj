@@ -18,6 +18,11 @@
 		A798A2BF1701F2FE002DB505 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A798A2BE1701F2FE002DB505 /* Default-568h@2x.png */; };
 		A798A2C21701F2FE002DB505 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A798A2C01701F2FE002DB505 /* MainStoryboard.storyboard */; };
 		A798A2C51701F2FE002DB505 /* GTI3DViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A798A2C41701F2FE002DB505 /* GTI3DViewController.m */; };
+		A798A2CC1701F32E002DB505 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2CB1701F32E002DB505 /* QuartzCore.framework */; };
+		A798A2CE1701F335002DB505 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2CD1701F335002DB505 /* OpenGLES.framework */; };
+		A798A2D01701F33B002DB505 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2CF1701F33B002DB505 /* GLKit.framework */; };
+		A798A2D21701F82A002DB505 /* fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A798A2D11701F82A002DB505 /* fragment.glsl */; };
+		A798A2D41701F83E002DB505 /* vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A798A2D31701F83E002DB505 /* vertex.glsl */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +42,11 @@
 		A798A2C11701F2FE002DB505 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
 		A798A2C31701F2FE002DB505 /* GTI3DViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GTI3DViewController.h; sourceTree = "<group>"; };
 		A798A2C41701F2FE002DB505 /* GTI3DViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GTI3DViewController.m; sourceTree = "<group>"; };
+		A798A2CB1701F32E002DB505 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		A798A2CD1701F335002DB505 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		A798A2CF1701F33B002DB505 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		A798A2D11701F82A002DB505 /* fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = fragment.glsl; sourceTree = "<group>"; };
+		A798A2D31701F83E002DB505 /* vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vertex.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +54,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A798A2D01701F33B002DB505 /* GLKit.framework in Frameworks */,
+				A798A2CE1701F335002DB505 /* OpenGLES.framework in Frameworks */,
+				A798A2CC1701F32E002DB505 /* QuartzCore.framework in Frameworks */,
 				A798A2A91701F2FE002DB505 /* UIKit.framework in Frameworks */,
 				A798A2AB1701F2FE002DB505 /* Foundation.framework in Frameworks */,
 				A798A2AD1701F2FE002DB505 /* CoreGraphics.framework in Frameworks */,
@@ -56,6 +69,9 @@
 		A798A29C1701F2FD002DB505 = {
 			isa = PBXGroup;
 			children = (
+				A798A2CF1701F33B002DB505 /* GLKit.framework */,
+				A798A2CD1701F335002DB505 /* OpenGLES.framework */,
+				A798A2CB1701F32E002DB505 /* QuartzCore.framework */,
 				A798A2AE1701F2FE002DB505 /* ios3D */,
 				A798A2A71701F2FD002DB505 /* Frameworks */,
 				A798A2A61701F2FD002DB505 /* Products */,
@@ -88,6 +104,8 @@
 				A798A2C01701F2FE002DB505 /* MainStoryboard.storyboard */,
 				A798A2C31701F2FE002DB505 /* GTI3DViewController.h */,
 				A798A2C41701F2FE002DB505 /* GTI3DViewController.m */,
+				A798A2D31701F83E002DB505 /* vertex.glsl */,
+				A798A2D11701F82A002DB505 /* fragment.glsl */,
 				A798A2AF1701F2FE002DB505 /* Supporting Files */,
 			);
 			path = ios3D;
@@ -164,6 +182,8 @@
 				A798A2BD1701F2FE002DB505 /* Default@2x.png in Resources */,
 				A798A2BF1701F2FE002DB505 /* Default-568h@2x.png in Resources */,
 				A798A2C21701F2FE002DB505 /* MainStoryboard.storyboard in Resources */,
+				A798A2D21701F82A002DB505 /* fragment.glsl in Resources */,
+				A798A2D41701F83E002DB505 /* vertex.glsl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

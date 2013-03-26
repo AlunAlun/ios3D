@@ -6,8 +6,9 @@
 //  Copyright (c) 2013 GTI. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import <GLKit/GLKit.h>
 
-@interface GTI3DViewController : UIViewController
+
+@interface GTI3DViewController : GLKViewController
 
 @end
