@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		A70D93581702CB55009C8BAA /* SquareTexture.pvr in Resources */ = {isa = PBXBuildFile; fileRef = A70D93561702C688009C8BAA /* SquareTexture.pvr */; };
+		A71903FF17031B3100C8A590 /* Node.m in Sources */ = {isa = PBXBuildFile; fileRef = A71903FE17031B3100C8A590 /* Node.m */; };
+		A719040217031CCC00C8A590 /* Scene.m in Sources */ = {isa = PBXBuildFile; fileRef = A719040117031CCC00C8A590 /* Scene.m */; };
+		A719040517031DEC00C8A590 /* SimpleCube.m in Sources */ = {isa = PBXBuildFile; fileRef = A719040417031DEC00C8A590 /* SimpleCube.m */; };
 		A798A2A91701F2FE002DB505 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2A81701F2FD002DB505 /* UIKit.framework */; };
 		A798A2AB1701F2FE002DB505 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2AA1701F2FE002DB505 /* Foundation.framework */; };
 		A798A2AD1701F2FE002DB505 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2AC1701F2FE002DB505 /* CoreGraphics.framework */; };
@@ -28,6 +31,12 @@
 
 /* Begin PBXFileReference section */
 		A70D93561702C688009C8BAA /* SquareTexture.pvr */ = {isa = PBXFileReference; lastKnownFileType = file; path = SquareTexture.pvr; sourceTree = "<group>"; };
+		A71903FD17031B3100C8A590 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		A71903FE17031B3100C8A590 /* Node.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Node.m; sourceTree = "<group>"; };
+		A719040017031CCC00C8A590 /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
+		A719040117031CCC00C8A590 /* Scene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Scene.m; sourceTree = "<group>"; };
+		A719040317031DEC00C8A590 /* SimpleCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimpleCube.h; sourceTree = "<group>"; };
+		A719040417031DEC00C8A590 /* SimpleCube.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SimpleCube.m; sourceTree = "<group>"; };
 		A798A2A51701F2FD002DB505 /* ios3D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ios3D.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A798A2A81701F2FD002DB505 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		A798A2AA1701F2FE002DB505 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -106,6 +115,12 @@
 				A798A2C01701F2FE002DB505 /* MainStoryboard.storyboard */,
 				A798A2C31701F2FE002DB505 /* GTI3DViewController.h */,
 				A798A2C41701F2FE002DB505 /* GTI3DViewController.m */,
+				A71903FD17031B3100C8A590 /* Node.h */,
+				A71903FE17031B3100C8A590 /* Node.m */,
+				A719040017031CCC00C8A590 /* Scene.h */,
+				A719040117031CCC00C8A590 /* Scene.m */,
+				A719040317031DEC00C8A590 /* SimpleCube.h */,
+				A719040417031DEC00C8A590 /* SimpleCube.m */,
 				A798A2D31701F83E002DB505 /* vertex.glsl */,
 				A798A2D11701F82A002DB505 /* fragment.glsl */,
 				A70D93561702C688009C8BAA /* SquareTexture.pvr */,
@@ -201,6 +216,9 @@
 				A798A2B51701F2FE002DB505 /* main.m in Sources */,
 				A798A2B91701F2FE002DB505 /* GTI3DAppDelegate.m in Sources */,
 				A798A2C51701F2FE002DB505 /* GTI3DViewController.m in Sources */,
+				A71903FF17031B3100C8A590 /* Node.m in Sources */,
+				A719040217031CCC00C8A590 /* Scene.m in Sources */,
+				A719040517031DEC00C8A590 /* SimpleCube.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

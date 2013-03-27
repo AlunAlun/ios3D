@@ -9,6 +9,7 @@
 #define VERTEX_SHADER @"vertex"
 #define FRAGMENT_SHADER @"fragment"
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
+#define TOUCHSENSITIVITY 200
 
 #import "GTI3DViewController.h"
 
@@ -97,12 +98,20 @@ typedef struct
     GLKMatrix4 _projectionMatrix;
     GLKMatrix4 _modelViewMatrix;
     
+    int _screenWidth;
+    int _screenHeight;
+    
     float _cursor;
     BOOL _autoRotate;
+    BOOL _isDragging;
+    float _xTouchLoc;
+    float _yTouchLoc;
+    float _lastScale;
 
 }
 @property (strong, nonatomic) EAGLContext *context;
 @property (strong, nonatomic) GLKTextureInfo *texture;
+
 
 
 
@@ -258,6 +267,8 @@ typedef struct
     // Set up the viewport
     int width = view.bounds.size.width;
     int height = view.bounds.size.height;
+    _screenWidth = width;
+    _screenHeight = height;
     glViewport(0, 0, width, height);
     
     
@@ -311,6 +322,14 @@ typedef struct
     tap.numberOfTapsRequired = 2;
     [view addGestureRecognizer:tap];
     
+    UIPinchGestureRecognizer *pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(Scale:)];
+	[view addGestureRecognizer:pinchRecognizer];
+    
+    _isDragging = false;	
+    _xTouchLoc = -1.0f;
+    _yTouchLoc = -1.0f;
+    
+    _lastScale = 1.0f;
     
 
 
@@ -331,6 +350,37 @@ typedef struct
             _cursor = 0;
         }
     }
+}
+
+-(void)Scale:(UITapGestureRecognizer*)sender
+{
+    if([(UIPinchGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+        
+		_lastScale = 1.0;
+		return;
+	}
+    CGFloat scale = 1.0 - (_lastScale - [(UIPinchGestureRecognizer*)sender scale]);
+
+    float newScale = MAX(0.3, MIN(GLKMathDegreesToRadians(45.0f)*scale, 3));
+    _projectionMatrix = GLKMatrix4MakePerspective(newScale, (float)_screenWidth/(float)_screenHeight, 0.01f, 100.0f);
+     
+}
+
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [[event allTouches] anyObject];
+    CGPoint location = [touch locationInView:touch.view];
+    _xTouchLoc = location.x;
+    _yTouchLoc = location.y;
+}
+
+-(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [[event allTouches] anyObject];
+    CGPoint location = [touch locationInView:touch.view];
+    _modelViewMatrix = GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)/TOUCHSENSITIVITY);
+    _xTouchLoc = location.x;
+    _yTouchLoc = location.y;    	
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
@@ -381,7 +431,7 @@ typedef struct
 
 - (void)update
 {
-    _modelViewMatrix = GLKMatrix4RotateY(_modelViewMatrix, _cursor);
+    //_modelViewMatrix = GLKMatrix4RotateY(_modelViewMatrix, _cursor);
 }
 
 - (void)didReceiveMemoryWarning
