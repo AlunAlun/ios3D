@@ -8,46 +8,47 @@
 
 #define VERTEX_SHADER @"vertex"
 #define FRAGMENT_SHADER @"fragment"
+#define BUFFER_OFFSET(i) ((char *)NULL + i)
 
 #import "GTI3DViewController.h"
 
-GLfloat CubeVertexData[72] =
+GLfloat CubeVertexData[192] =
 {
-    // right
-    0.5f, -0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f,  0.5f,
-    0.5f, -0.5f,  0.5f,
+    // right 0
+    0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
     
-    // top
-    0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
+    // top 4
+    0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
     
-    // left
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
+    // left 8
+    -0.5f,  0.5f, -0.5f,    -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,    -1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,    -1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,    -1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
     
-    // bottom
-    -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
+    // bottom 12
+    -0.5f, -0.5f, -0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
     
-    // front
-    0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    0.5f, -0.5f,  0.5f,
+    // front 16
+    0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
     
-    // back
-    0.5f,  0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
+    // back 20
+    0.5f,  0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
 };
 
 GLuint CubeIndicesData[36] =
@@ -95,9 +96,13 @@ typedef struct
     
     GLKMatrix4 _projectionMatrix;
     GLKMatrix4 _modelViewMatrix;
+    
+    float _cursor;
+    BOOL _autoRotate;
 
 }
 @property (strong, nonatomic) EAGLContext *context;
+@property (strong, nonatomic) GLKTextureInfo *texture;
 
 
 
@@ -105,6 +110,7 @@ typedef struct
 
 @implementation GTI3DViewController
 @synthesize context = _context;
+@synthesize texture = _texture;
 
 
 
@@ -231,6 +237,16 @@ typedef struct
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
     
+    
+    //load texture
+    NSError *error;
+    NSString* filePath = [[NSBundle mainBundle] pathForResource:@"SquareTexture" ofType:@"pvr"];
+    self.texture = [GLKTextureLoader textureWithContentsOfFile:filePath options:nil error:&error];
+    if(error) {
+        NSLog(@"Error loading texture from image: %@", error);
+        exit(1);
+    }
+    
     // Change the format of the depth renderbuffer
     // This value is None by default
     view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
@@ -265,21 +281,56 @@ typedef struct
     
     // Bind the attribute pointers to the VAO
     GLint attribute;
-    GLsizei stride = sizeof(GLfloat) * 3;
+    GLsizei stride = sizeof(GLfloat) * 8; // 3 vert, 3 normal, 2 texture
     glGenVertexArraysOES( 1, &_VAO );
     glBindVertexArrayOES( _VAO );
     
     glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
     
-    attribute = glGetAttribLocation(_program, "Position");
+    //Vert positions
+    attribute = glGetAttribLocation(_program, "VertexPosition");
     glEnableVertexAttribArray( attribute );
     glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, NULL );
+    
+    // Give the normals to GL to pass them to the shader
+    // We will have to add the VertexNormal attribute in the shader
+    attribute = glGetAttribLocation(_program, "VertexNormal");
+    glEnableVertexAttribArray( attribute );
+    glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*3/8 ) );
+    
+    attribute = glGetAttribLocation(_program, "VertexTexCoord0");
+    glEnableVertexAttribArray( attribute );
+    glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
     
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
     
     glBindVertexArrayOES( 0 );
     
+    //gestures/input
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(Tapped:)];
+    tap.numberOfTapsRequired = 2;
+    [view addGestureRecognizer:tap];
+    
+    
 
+
+}
+
+// This is the selector/callback for gestures
+
+-(void)Tapped:(UITapGestureRecognizer*)sender
+{
+    if(sender.state == UIGestureRecognizerStateEnded)
+    {
+        _autoRotate = !_autoRotate;
+        if (_autoRotate) {
+            _cursor = 0.05;
+        }
+        else
+        {
+            _cursor = 0;
+        }
+    }
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
@@ -292,13 +343,36 @@ typedef struct
     glBindVertexArrayOES( _VAO );
     glUseProgram( _program );
     
-    for (int i = 0; i < _uniformArraySize; i++) {
-        if (!strcmp(_uniformArray[i].Name, "ModelViewProjectionMatrix")) {
-            // Multiply the transformation matrices together
-            GLKMatrix4 modelViewProjectionMatrix = GLKMatrix4Multiply(_projectionMatrix, _modelViewMatrix);
-            glUniformMatrix4fv(_uniformArray[i].Location, 1, GL_FALSE, modelViewProjectionMatrix.m);
+    for (int i = 0; i < _uniformArraySize; i++)
+    {
+        if (!strcmp(_uniformArray[i].Name, "ModelViewMatrix"))
+        {
+            glUniformMatrix4fv(_uniformArray[i].Location, 1, GL_FALSE, _modelViewMatrix.m);
         }
+        else if (!strcmp(_uniformArray[i].Name, "ProjectionMatrix"))
+        {
+            glUniformMatrix4fv(_uniformArray[i].Location, 1, GL_FALSE, _projectionMatrix.m);
+        }
+        else if (!strcmp(_uniformArray[i].Name, "NormalMatrix"))
+        {
+            bool success;
+            GLKMatrix4 normalMatrix4 = GLKMatrix4InvertAndTranspose(_modelViewMatrix, &success);
+            if (success) {
+                GLKMatrix3 normalMatrix3 = GLKMatrix4GetMatrix3(normalMatrix4);
+                glUniformMatrix3fv(_uniformArray[i].Location, 1, GL_FALSE, normalMatrix3.m);
+            }
+        }
+        else if (!strcmp(_uniformArray[i].Name, "LightPosition"))
+        {
+            GLKVector3 l = GLKVector3Make(0.0f , 0.0f, 0.0f);
+            glUniform3fv(_uniformArray[i].Location, 1, l.v);
+        }
+        
     }
+    
+    //texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(self.texture.target, self.texture.name);
     
     // Draw!
     glDrawElements( GL_TRIANGLES, sizeof(CubeIndicesData)/sizeof(GLuint), GL_UNSIGNED_INT, NULL );
@@ -307,7 +381,7 @@ typedef struct
 
 - (void)update
 {
-    
+    _modelViewMatrix = GLKMatrix4RotateY(_modelViewMatrix, _cursor);
 }
 
 - (void)didReceiveMemoryWarning
@@ -340,6 +414,9 @@ typedef struct
         free(_uniformArray[i].Name);
     }
     free(_uniformArray);
+    
+    //self.context = nil;
+    //∫self.texture = nil;
 }
 
 @end

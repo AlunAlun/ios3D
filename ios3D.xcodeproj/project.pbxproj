@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A70D93581702CB55009C8BAA /* SquareTexture.pvr in Resources */ = {isa = PBXBuildFile; fileRef = A70D93561702C688009C8BAA /* SquareTexture.pvr */; };
 		A798A2A91701F2FE002DB505 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2A81701F2FD002DB505 /* UIKit.framework */; };
 		A798A2AB1701F2FE002DB505 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2AA1701F2FE002DB505 /* Foundation.framework */; };
 		A798A2AD1701F2FE002DB505 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2AC1701F2FE002DB505 /* CoreGraphics.framework */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A70D93561702C688009C8BAA /* SquareTexture.pvr */ = {isa = PBXFileReference; lastKnownFileType = file; path = SquareTexture.pvr; sourceTree = "<group>"; };
 		A798A2A51701F2FD002DB505 /* ios3D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ios3D.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A798A2A81701F2FD002DB505 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		A798A2AA1701F2FE002DB505 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -106,6 +108,7 @@
 				A798A2C41701F2FE002DB505 /* GTI3DViewController.m */,
 				A798A2D31701F83E002DB505 /* vertex.glsl */,
 				A798A2D11701F82A002DB505 /* fragment.glsl */,
+				A70D93561702C688009C8BAA /* SquareTexture.pvr */,
 				A798A2AF1701F2FE002DB505 /* Supporting Files */,
 			);
 			path = ios3D;
@@ -184,6 +187,7 @@
 				A798A2C21701F2FE002DB505 /* MainStoryboard.storyboard in Resources */,
 				A798A2D21701F82A002DB505 /* fragment.glsl in Resources */,
 				A798A2D41701F83E002DB505 /* vertex.glsl in Resources */,
+				A70D93581702CB55009C8BAA /* SquareTexture.pvr in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +325,7 @@
 				A798A2CA1701F2FE002DB505 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
