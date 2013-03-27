@@ -24,10 +24,19 @@
     return self;
 }
 
-- (void)renderWithModelViewMatrix:(GLKMatrix4)modelViewMatrix
+- (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix;
 {
+    //we're not rendering here because it will be subclassed
+    // ALL SUBCLASSES MUST CALL [super renderWithMV P]
     
+    //move this node to it's stored position
+    GLKMatrix4 childModelViewMatrix = GLKMatrix4Multiply(modelViewMatrix, [self modelMatrix:NO]);
+    //vamos a renderizar todos los hijos
+    for (Node * node in self.children) {
+        [node renderWithMV:childModelViewMatrix P:projectionMatrix];
+    }
 }
+
 - (void)update:(float)dt
 {
     
@@ -37,20 +46,20 @@
     //cargar identity matrix
     GLKMatrix4 modelMatrix = GLKMatrix4Identity;
     //trasladar a nuestro posicion
-    modelMatrix = GLKMatrix4Translate(modelMatrix, self.position.x, self.position.y, 0);
+    modelMatrix = GLKMatrix4Translate(modelMatrix, self.position.x, self.position.y, self.position.z );
     
     //aplicar rotacion
-    float radians = GLKMathDegreesToRadians(self.rotation);
-    modelMatrix = GLKMatrix4Rotate(modelMatrix, radians, 0, 0, 1);
+    //float radians = GLKMathDegreesToRadians(self.rotation);
+    //modelMatrix = GLKMatrix4Rotate(modelMatrix, radians, 0, 0, 1);
     
     //aplicar scale
-    modelMatrix = GLKMatrix4Scale(modelMatrix, self.scale, self.scale, 0);
+    modelMatrix = GLKMatrix4Scale(modelMatrix, self.scale, self.scale, self.scale);
     
     return modelMatrix;
 }
 - (void)addChild:(Node *)child
 {
-    
+    [self.children addObject:child];
 }
 - (void)handleTouchDown:(CGPoint)touchLocation
 {

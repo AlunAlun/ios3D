@@ -17,7 +17,7 @@
 @property (assign) float scale;
 
 
-- (void)renderWithModelViewMatrix:(GLKMatrix4)modelViewMatrix;
+- (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix;
 - (void)update:(float)dt;
 - (GLKMatrix4) modelMatrix:(BOOL)renderingSelf;
 - (void)addChild:(Node *)child;

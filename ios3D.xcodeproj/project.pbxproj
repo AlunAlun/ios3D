@@ -27,10 +27,24 @@
 		A798A2D01701F33B002DB505 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2CF1701F33B002DB505 /* GLKit.framework */; };
 		A798A2D21701F82A002DB505 /* fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A798A2D11701F82A002DB505 /* fragment.glsl */; };
 		A798A2D41701F83E002DB505 /* vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A798A2D31701F83E002DB505 /* vertex.glsl */; };
+		A7FD21EB1703579300D71BB8 /* WaveFrontObject.m in Sources */ = {isa = PBXBuildFile; fileRef = A7FD21EA1703579300D71BB8 /* WaveFrontObject.m */; };
+		A7FD21EE17035B5D00D71BB8 /* Material.m in Sources */ = {isa = PBXBuildFile; fileRef = A7FD21ED17035B5D00D71BB8 /* Material.m */; };
+		A7FD21FC17035D6D00D71BB8 /* cube_template_Cube-256.pvr4 in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F017035D6D00D71BB8 /* cube_template_Cube-256.pvr4 */; };
+		A7FD21FD17035D6D00D71BB8 /* cube_template_Cube.tga in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F117035D6D00D71BB8 /* cube_template_Cube.tga */; };
+		A7FD21FE17035D6D00D71BB8 /* cylinder2.mtl in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F217035D6D00D71BB8 /* cylinder2.mtl */; };
+		A7FD21FF17035D6D00D71BB8 /* cylinder2.obj in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F317035D6D00D71BB8 /* cylinder2.obj */; };
+		A7FD220017035D6D00D71BB8 /* earth.mtl in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F417035D6D00D71BB8 /* earth.mtl */; };
+		A7FD220117035D6D00D71BB8 /* earth.obj in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F517035D6D00D71BB8 /* earth.obj */; };
+		A7FD220217035D6D00D71BB8 /* plane3.mtl in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F617035D6D00D71BB8 /* plane3.mtl */; };
+		A7FD220317035D6D00D71BB8 /* plane3.obj in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F717035D6D00D71BB8 /* plane3.obj */; };
+		A7FD220417035D6D00D71BB8 /* sphere-256.pvr4 in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F817035D6D00D71BB8 /* sphere-256.pvr4 */; };
+		A7FD220517035D6D00D71BB8 /* texture1-128.pvr4 in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21F917035D6D00D71BB8 /* texture1-128.pvr4 */; };
+		A7FD220617035D6D00D71BB8 /* uvcube2.mtl in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21FA17035D6D00D71BB8 /* uvcube2.mtl */; };
+		A7FD220717035D6D00D71BB8 /* uvcube2.obj in Resources */ = {isa = PBXBuildFile; fileRef = A7FD21FB17035D6D00D71BB8 /* uvcube2.obj */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A70D93561702C688009C8BAA /* SquareTexture.pvr */ = {isa = PBXFileReference; lastKnownFileType = file; path = SquareTexture.pvr; sourceTree = "<group>"; };
+		A70D93561702C688009C8BAA /* SquareTexture.pvr */ = {isa = PBXFileReference; lastKnownFileType = file; name = SquareTexture.pvr; path = ../SquareTexture.pvr; sourceTree = "<group>"; };
 		A71903FD17031B3100C8A590 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		A71903FE17031B3100C8A590 /* Node.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Node.m; sourceTree = "<group>"; };
 		A719040017031CCC00C8A590 /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
@@ -58,6 +72,22 @@
 		A798A2CF1701F33B002DB505 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		A798A2D11701F82A002DB505 /* fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = fragment.glsl; sourceTree = "<group>"; };
 		A798A2D31701F83E002DB505 /* vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vertex.glsl; sourceTree = "<group>"; };
+		A7FD21E91703579300D71BB8 /* WaveFrontObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WaveFrontObject.h; sourceTree = "<group>"; };
+		A7FD21EA1703579300D71BB8 /* WaveFrontObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WaveFrontObject.m; sourceTree = "<group>"; };
+		A7FD21EC17035B5D00D71BB8 /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Material.h; sourceTree = "<group>"; };
+		A7FD21ED17035B5D00D71BB8 /* Material.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Material.m; sourceTree = "<group>"; };
+		A7FD21F017035D6D00D71BB8 /* cube_template_Cube-256.pvr4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "cube_template_Cube-256.pvr4"; sourceTree = "<group>"; };
+		A7FD21F117035D6D00D71BB8 /* cube_template_Cube.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = cube_template_Cube.tga; sourceTree = "<group>"; };
+		A7FD21F217035D6D00D71BB8 /* cylinder2.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cylinder2.mtl; sourceTree = "<group>"; };
+		A7FD21F317035D6D00D71BB8 /* cylinder2.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cylinder2.obj; sourceTree = "<group>"; };
+		A7FD21F417035D6D00D71BB8 /* earth.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = earth.mtl; sourceTree = "<group>"; };
+		A7FD21F517035D6D00D71BB8 /* earth.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = earth.obj; sourceTree = "<group>"; };
+		A7FD21F617035D6D00D71BB8 /* plane3.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = plane3.mtl; sourceTree = "<group>"; };
+		A7FD21F717035D6D00D71BB8 /* plane3.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = plane3.obj; sourceTree = "<group>"; };
+		A7FD21F817035D6D00D71BB8 /* sphere-256.pvr4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sphere-256.pvr4"; sourceTree = "<group>"; };
+		A7FD21F917035D6D00D71BB8 /* texture1-128.pvr4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "texture1-128.pvr4"; sourceTree = "<group>"; };
+		A7FD21FA17035D6D00D71BB8 /* uvcube2.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = uvcube2.mtl; sourceTree = "<group>"; };
+		A7FD21FB17035D6D00D71BB8 /* uvcube2.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = uvcube2.obj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +140,7 @@
 		A798A2AE1701F2FE002DB505 /* ios3D */ = {
 			isa = PBXGroup;
 			children = (
+				A7FD21EF17035D6D00D71BB8 /* Assets */,
 				A798A2B71701F2FE002DB505 /* GTI3DAppDelegate.h */,
 				A798A2B81701F2FE002DB505 /* GTI3DAppDelegate.m */,
 				A798A2C01701F2FE002DB505 /* MainStoryboard.storyboard */,
@@ -119,11 +150,14 @@
 				A71903FE17031B3100C8A590 /* Node.m */,
 				A719040017031CCC00C8A590 /* Scene.h */,
 				A719040117031CCC00C8A590 /* Scene.m */,
+				A7FD21EC17035B5D00D71BB8 /* Material.h */,
+				A7FD21ED17035B5D00D71BB8 /* Material.m */,
 				A719040317031DEC00C8A590 /* SimpleCube.h */,
 				A719040417031DEC00C8A590 /* SimpleCube.m */,
+				A7FD21E91703579300D71BB8 /* WaveFrontObject.h */,
+				A7FD21EA1703579300D71BB8 /* WaveFrontObject.m */,
 				A798A2D31701F83E002DB505 /* vertex.glsl */,
 				A798A2D11701F82A002DB505 /* fragment.glsl */,
-				A70D93561702C688009C8BAA /* SquareTexture.pvr */,
 				A798A2AF1701F2FE002DB505 /* Supporting Files */,
 			);
 			path = ios3D;
@@ -141,6 +175,27 @@
 				A798A2BE1701F2FE002DB505 /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		A7FD21EF17035D6D00D71BB8 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				A70D93561702C688009C8BAA /* SquareTexture.pvr */,
+				A7FD21F017035D6D00D71BB8 /* cube_template_Cube-256.pvr4 */,
+				A7FD21F117035D6D00D71BB8 /* cube_template_Cube.tga */,
+				A7FD21F217035D6D00D71BB8 /* cylinder2.mtl */,
+				A7FD21F317035D6D00D71BB8 /* cylinder2.obj */,
+				A7FD21F417035D6D00D71BB8 /* earth.mtl */,
+				A7FD21F517035D6D00D71BB8 /* earth.obj */,
+				A7FD21F617035D6D00D71BB8 /* plane3.mtl */,
+				A7FD21F717035D6D00D71BB8 /* plane3.obj */,
+				A7FD21F817035D6D00D71BB8 /* sphere-256.pvr4 */,
+				A7FD21F917035D6D00D71BB8 /* texture1-128.pvr4 */,
+				A7FD21FA17035D6D00D71BB8 /* uvcube2.mtl */,
+				A7FD21FB17035D6D00D71BB8 /* uvcube2.obj */,
+			);
+			name = Assets;
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -203,6 +258,18 @@
 				A798A2D21701F82A002DB505 /* fragment.glsl in Resources */,
 				A798A2D41701F83E002DB505 /* vertex.glsl in Resources */,
 				A70D93581702CB55009C8BAA /* SquareTexture.pvr in Resources */,
+				A7FD21FC17035D6D00D71BB8 /* cube_template_Cube-256.pvr4 in Resources */,
+				A7FD21FD17035D6D00D71BB8 /* cube_template_Cube.tga in Resources */,
+				A7FD21FE17035D6D00D71BB8 /* cylinder2.mtl in Resources */,
+				A7FD21FF17035D6D00D71BB8 /* cylinder2.obj in Resources */,
+				A7FD220017035D6D00D71BB8 /* earth.mtl in Resources */,
+				A7FD220117035D6D00D71BB8 /* earth.obj in Resources */,
+				A7FD220217035D6D00D71BB8 /* plane3.mtl in Resources */,
+				A7FD220317035D6D00D71BB8 /* plane3.obj in Resources */,
+				A7FD220417035D6D00D71BB8 /* sphere-256.pvr4 in Resources */,
+				A7FD220517035D6D00D71BB8 /* texture1-128.pvr4 in Resources */,
+				A7FD220617035D6D00D71BB8 /* uvcube2.mtl in Resources */,
+				A7FD220717035D6D00D71BB8 /* uvcube2.obj in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +286,8 @@
 				A71903FF17031B3100C8A590 /* Node.m in Sources */,
 				A719040217031CCC00C8A590 /* Scene.m in Sources */,
 				A719040517031DEC00C8A590 /* SimpleCube.m in Sources */,
+				A7FD21EB1703579300D71BB8 /* WaveFrontObject.m in Sources */,
+				A7FD21EE17035B5D00D71BB8 /* Material.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

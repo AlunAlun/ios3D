@@ -12,6 +12,9 @@
 #define TOUCHSENSITIVITY 200
 
 #import "GTI3DViewController.h"
+#import "Node.h"
+#import "Scene.h"
+#import "SimpleCube.h"
 
 GLfloat CubeVertexData[192] =
 {
@@ -87,6 +90,9 @@ typedef struct
 }UniformInfo;
 
 @interface GTI3DViewController () {
+    
+
+    
     GLuint _program;
     Uniform *_uniformArray;
     GLint _uniformArraySize;
@@ -111,16 +117,14 @@ typedef struct
 }
 @property (strong, nonatomic) EAGLContext *context;
 @property (strong, nonatomic) GLKTextureInfo *texture;
-
-
-
+@property (strong) Node * currentScene;
 
 @end
 
 @implementation GTI3DViewController
 @synthesize context = _context;
 @synthesize texture = _texture;
-
+@synthesize currentScene = _currentScene;
 
 
 - (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType
@@ -247,15 +251,6 @@ typedef struct
     view.context = self.context;
     
     
-    //load texture
-    NSError *error;
-    NSString* filePath = [[NSBundle mainBundle] pathForResource:@"SquareTexture" ofType:@"pvr"];
-    self.texture = [GLKTextureLoader textureWithContentsOfFile:filePath options:nil error:&error];
-    if(error) {
-        NSLog(@"Error loading texture from image: %@", error);
-        exit(1);
-    }
-    
     // Change the format of the depth renderbuffer
     // This value is None by default
     view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
@@ -277,45 +272,7 @@ typedef struct
     
     _modelViewMatrix = GLKMatrix4MakeLookAt(2.0f, 2.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), (float)width/(float)height, 0.01f, 100.0f);
-    
-    // Make the vertex buffer
-    glGenBuffers( 1, &_verticesVBO );
-    glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(CubeVertexData), CubeVertexData, GL_STATIC_DRAW );
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
-    
-    // Make the indices buffer
-    glGenBuffers( 1, &_indicesVBO );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(CubeIndicesData), CubeIndicesData, GL_STATIC_DRAW );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-    
-    // Bind the attribute pointers to the VAO
-    GLint attribute;
-    GLsizei stride = sizeof(GLfloat) * 8; // 3 vert, 3 normal, 2 texture
-    glGenVertexArraysOES( 1, &_VAO );
-    glBindVertexArrayOES( _VAO );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
-    
-    //Vert positions
-    attribute = glGetAttribLocation(_program, "VertexPosition");
-    glEnableVertexAttribArray( attribute );
-    glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, NULL );
-    
-    // Give the normals to GL to pass them to the shader
-    // We will have to add the VertexNormal attribute in the shader
-    attribute = glGetAttribLocation(_program, "VertexNormal");
-    glEnableVertexAttribArray( attribute );
-    glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*3/8 ) );
-    
-    attribute = glGetAttribLocation(_program, "VertexTexCoord0");
-    glEnableVertexAttribArray( attribute );
-    glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
-    
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
-    
-    glBindVertexArrayOES( 0 );
+      
     
     //gestures/input
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(Tapped:)];
@@ -331,8 +288,10 @@ typedef struct
     
     _lastScale = 1.0f;
     
-
-
+ 
+    //cargar la unica escena que hemos creado hasta ahora
+    self.currentScene = [[Scene alloc] initWithProgram:_program];
+    //self.cube = [[SimpleCube alloc] initWithFile:@"SquareTexture" program:_program];
 }
 
 // This is the selector/callback for gestures
@@ -383,49 +342,17 @@ typedef struct
     _yTouchLoc = location.y;    	
 }
 
+
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
     // Clear the screen
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
     
-    // Bind the VAO and the program
-    glBindVertexArrayOES( _VAO );
-    glUseProgram( _program );
+    //parse the scene
+    [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
     
-    for (int i = 0; i < _uniformArraySize; i++)
-    {
-        if (!strcmp(_uniformArray[i].Name, "ModelViewMatrix"))
-        {
-            glUniformMatrix4fv(_uniformArray[i].Location, 1, GL_FALSE, _modelViewMatrix.m);
-        }
-        else if (!strcmp(_uniformArray[i].Name, "ProjectionMatrix"))
-        {
-            glUniformMatrix4fv(_uniformArray[i].Location, 1, GL_FALSE, _projectionMatrix.m);
-        }
-        else if (!strcmp(_uniformArray[i].Name, "NormalMatrix"))
-        {
-            bool success;
-            GLKMatrix4 normalMatrix4 = GLKMatrix4InvertAndTranspose(_modelViewMatrix, &success);
-            if (success) {
-                GLKMatrix3 normalMatrix3 = GLKMatrix4GetMatrix3(normalMatrix4);
-                glUniformMatrix3fv(_uniformArray[i].Location, 1, GL_FALSE, normalMatrix3.m);
-            }
-        }
-        else if (!strcmp(_uniformArray[i].Name, "LightPosition"))
-        {
-            GLKVector3 l = GLKVector3Make(0.0f , 0.0f, 0.0f);
-            glUniform3fv(_uniformArray[i].Location, 1, l.v);
-        }
-        
-    }
-    
-    //texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(self.texture.target, self.texture.name);
-    
-    // Draw!
-    glDrawElements( GL_TRIANGLES, sizeof(CubeIndicesData)/sizeof(GLuint), GL_UNSIGNED_INT, NULL );
+
     
 }
 
@@ -465,8 +392,8 @@ typedef struct
     }
     free(_uniformArray);
     
-    //self.context = nil;
-    //∫self.texture = nil;
+    self.context = nil;
+    self.texture = nil;
 }
 
 @end

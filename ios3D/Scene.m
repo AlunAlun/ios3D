@@ -7,12 +7,41 @@
 //
 
 #import "Scene.h"
+#import "SimpleCube.h"
+#import "Material.h"
+#import "WaveFrontObject.h"
+
+@interface Scene ()
+{
+    GLuint _program;
+}
+
+@end
 
 @implementation Scene
 
-- (id)init {
+- (id)initWithProgram:(GLuint)program {
     if ((self = [super init])) {
-        //TODO: add children
+        _program = program;
+
+        Material *mat = [[Material alloc] initWithTexture:@"SquareTexture" ofType:@"pvr"];
+        
+        for (int x = -2; x < 2; x++)
+        {
+            for (int z = -2; z < 2; z++)
+            {
+                SimpleCube *cube = [[SimpleCube alloc] initWithMaterial:mat program:_program];
+                cube.position = GLKVector3Make(x, 0, z);
+                cube.scale = 0.5;
+                
+                [self addChild:cube];
+            }
+        }
+        
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"uvcube2" ofType:@"obj"];
+        WaveFrontObject *theObject = [[WaveFrontObject alloc] initWithPath:path program:_program];
+        
+
     }
     return self;
 }

@@ -10,4 +10,6 @@
 
 @interface Scene : Node
 
+- (id)initWithProgram:(GLuint)program;
+
 @end

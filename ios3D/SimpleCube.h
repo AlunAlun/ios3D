@@ -7,7 +7,11 @@
 //
 
 #import "Node.h"
+#import "Material.h"
 
 @interface SimpleCube : Node
+
+- (id)initWithFile:(NSString *)fileName program:(GLuint)program;
+- (id)initWithMaterial:(Material *)mat program:(GLuint)program;
 
 @end
