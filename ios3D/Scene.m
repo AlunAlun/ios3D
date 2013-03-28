@@ -34,12 +34,16 @@
                 cube.position = GLKVector3Make(x, 0, z);
                 cube.scale = 0.5;
                 
-                [self addChild:cube];
+                //[self addChild:cube];
             }
         }
+
+        SimpleCube *cube = [[SimpleCube alloc] initWithMaterial:mat program:_program];
+       // [self addChild:cube];
         
         NSString *path = [[NSBundle mainBundle] pathForResource:@"uvcube2" ofType:@"obj"];
         WaveFrontObject *theObject = [[WaveFrontObject alloc] initWithPath:path program:_program];
+        [self addChild:theObject];
         
 
     }

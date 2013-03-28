@@ -190,8 +190,8 @@
 				A7FD21F617035D6D00D71BB8 /* plane3.mtl */,
 				A7FD21F717035D6D00D71BB8 /* plane3.obj */,
 				A7FD21F817035D6D00D71BB8 /* sphere-256.pvr4 */,
-				A7FD21F917035D6D00D71BB8 /* texture1-128.pvr4 */,
 				A7FD21FA17035D6D00D71BB8 /* uvcube2.mtl */,
+				A7FD21F917035D6D00D71BB8 /* texture1-128.pvr4 */,
 				A7FD21FB17035D6D00D71BB8 /* uvcube2.obj */,
 			);
 			name = Assets;
