@@ -22,14 +22,14 @@
     //GLfloat				*textureCoords;
     GLubyte				valuesPerCoord;			// 1, 2, or 3, representing U, UV, or UVW mapping, could be 4 but OBJ doesn't support 4
 
-    NSDictionary		*materials;
+    NSMutableDictionary		*materials;
     NSMutableArray		*groups;
 
 }
-@property (nonatomic, retain) NSString *sourceObjFilePath;
-@property (nonatomic, retain) NSString *sourceMtlFilePath;
-@property (nonatomic, retain) NSDictionary *materials;
-@property (nonatomic, retain) NSMutableArray *groups;
+@property (strong, nonatomic) NSString *sourceObjFilePath;
+@property (strong, nonatomic) NSString *sourceMtlFilePath;
+@property (strong, nonatomic) NSMutableDictionary *materials;
+@property (strong, nonatomic) NSMutableArray *groups;
 
 - (id)initWithPath:(NSString *)path program:(GLuint)program;
 

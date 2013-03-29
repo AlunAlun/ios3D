@@ -12,7 +12,9 @@
 @interface Material : NSObject
 
 @property(strong) GLKTextureInfo *texture;
+@property(strong) NSString *name;
 
 -(id)initWithTexture:(NSString*)filename ofType:(NSString*)type;
+-(void)loadTexture:(NSString*)filename ofType:(NSString*)type;
 
 @end

@@ -7,6 +7,7 @@
 //
 
 #import "WaveFrontObject.h"
+#import "Material.h"
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
 
 
@@ -37,16 +38,16 @@
 	{
 		_program = program;
         
-        //*************************
+        //**************************************************
         //* Load file
-        //*************************
+        //**************************************************
 		self.sourceObjFilePath = path;
 		NSString *objData = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
 		int vertexCount = 0, faceCount = 0, textureCoordsCount=0, groupCount = 0;
         
-        //*************************
+        //**************************************************
         //***** Iterate through file once to discover how many vertices, normals, and faces there are *****//
-        //*************************
+        //**************************************************
 		
 		NSArray *lines = [objData componentsSeparatedByString:@"\n"];
 		BOOL firstTextureCoords = YES;
@@ -72,8 +73,8 @@
 			{
 				NSString *truncLine = [line substringFromIndex:7];
 				self.sourceMtlFilePath = truncLine;
-				NSString *mtlPath = [[NSBundle mainBundle] pathForResource:[[truncLine lastPathComponent] stringByDeletingPathExtension] ofType:[truncLine pathExtension]];
-//TODO materials        self.materials = [OpenGLWaveFrontMaterial materialsFromMtlFile:mtlPath];
+                NSString *mtlPath = [[NSBundle mainBundle] pathForResource:[[truncLine lastPathComponent] stringByDeletingPathExtension] ofType:[truncLine pathExtension]];
+                self.materials = [self getMaterials:mtlPath];
 			}
 			else if ([line hasPrefix:@"g"])
 				groupCount++;
@@ -90,7 +91,7 @@
                     if (![vertexCombinations containsObject:oneFace])
 						[vertexCombinations addObject:oneFace];
 					               
-					/* //********* DECOMMENT THIS IF WE WANT TO CALCULATE NORMALS OURSELVES *******
+					/* // ********* DECOMMENT THIS IF WE WANT TO CALCULATE NORMALS OURSELVES *******
                     NSArray *faceParts = [oneFace componentsSeparatedByString:@"/"];
 					NSString *faceKey = [NSString stringWithFormat:@"%@/%@", [faceParts objectAtIndex:0], ([faceParts count] > 1) ? [faceParts objectAtIndex:1] : 0];
 					if (![vertexCombinations containsObject:faceKey])
@@ -105,27 +106,22 @@
         NSLog(@"Textu: %i",textureCoordsCount);
         NSLog(@"Faces: %i",faceCount);
         NSLog(@"index: %i",[indexArray count]);
+        NSLog(@"materialcount: %i",[self.materials count]);
+        for(id key in self.materials)
+            NSLog(@"key=%@ value=%@", key, [self.materials objectForKey:key]);
         
-        //*************************
+        //**************************************************
         //***** Fill arrays with data from file
-        //*************************
+        //**************************************************
         
-        GLfloat AlunVertexData[vertexCount*3];
-        GLfloat AlunNormalData[vertexCount*3];
-        GLfloat AlunTexData[textureCoordsCount*2];
-       
-        
-        //faces
-        GLuint objFaceIndicesSize = faceCount*3;
-        GLuint objFaceVertIndices[objFaceIndicesSize];
-        //GLuint objFaceTextIndices[objFaceIndicesSize];
-        
-
-        
+        GLfloat RawVertexData[vertexCount*3];
+        GLfloat RawNormalData[vertexCount*3];
+        GLfloat RawTextureData[textureCoordsCount*2];
+               
         int vertexCountx3 = 0;
         int normCountx3 = 0;
         int texCountx2 = 0;
-        int faceCountx3 = 0;
+        
         for (NSString * line in lines)
 		{
             if ([line hasPrefix:@"v "])
@@ -133,56 +129,35 @@
 				NSString *lineTrunc = [line substringFromIndex:2];
 				NSArray *lineVertices = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
                 
-                AlunVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:0] floatValue];
-                AlunVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:1] floatValue];
-                AlunVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:2] floatValue];
+                RawVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:0] floatValue];
+                RawVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:1] floatValue];
+                RawVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:2] floatValue];
 			}
             else if ([line hasPrefix: @"vn "])
 			{
 				NSString *lineTrunc = [line substringFromIndex:3];
 				NSArray *lineNorms = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                AlunNormalData[normCountx3++] = [[lineNorms objectAtIndex:0] floatValue];
-                AlunNormalData[normCountx3++] = [[lineNorms objectAtIndex:1] floatValue];
-                AlunNormalData[normCountx3++] = [[lineNorms objectAtIndex:2] floatValue];
+                RawNormalData[normCountx3++] = [[lineNorms objectAtIndex:0] floatValue];
+                RawNormalData[normCountx3++] = [[lineNorms objectAtIndex:1] floatValue];
+                RawNormalData[normCountx3++] = [[lineNorms objectAtIndex:2] floatValue];
             }
             else if ([line hasPrefix: @"vt "])
 			{
 				NSString *lineTrunc = [line substringFromIndex:3];
 				NSArray *lineCoords = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                AlunTexData[texCountx2++] = [[lineCoords objectAtIndex:0] floatValue];
-                AlunTexData[texCountx2++] = [[lineCoords objectAtIndex:1] floatValue];
+                RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:0] floatValue];
+                RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:1] floatValue];
             }
-            else if ([line hasPrefix:@"f "])
-			{
-				NSString *lineTrunc = [line substringFromIndex:2];
-				NSArray *faces = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                
-                for (NSString *oneFace in faces)
-				{
-                    //separate the face to get individual verts
-					NSArray *faceParts = [oneFace componentsSeparatedByString:@"/"];
-                    
-                    //[mutDictionary setValue:[faceParts objectAtIndex:1] forKey:[faceParts objectAtIndex:0]];
-                    
-                    //first value is the face index
-                    objFaceVertIndices[faceCountx3] = [[faceParts objectAtIndex:0] intValue]-1;
-                    //TODO: Check to see if text inds and normal inds exist
-                  //  objFaceTextIndices[faceCountx3] = [[faceParts objectAtIndex:1] intValue];
-                    
-                    //check if 
-                    
-                    
-                    faceCountx3++;
-                            
-                }
-                
-            }
+
             
         }
-        
-        GLuint newDataBufferSize = [vertexCombinations count];
-        GLfloat newDataBuffer[newDataBufferSize*8];
-        int newCounter = 0;
+    
+        //**************************************************
+        //***** Fill arrays with data from file
+        //**************************************************
+    
+        GLuint dataBufferSize = [vertexCombinations count];
+        GLfloat dataBuffer[dataBufferSize*8];
         int buffPos = 0;
         for (int i = 0; i < [vertexCombinations count]; i++)
         {
@@ -190,56 +165,60 @@
             NSArray *pairParts = [pair componentsSeparatedByString:@"/"];
             int currVertexPos = [[pairParts objectAtIndex:0] intValue]-1;
             int currTextPos = [[pairParts objectAtIndex:1] intValue]-1;
+            int currNormalPos = [[pairParts objectAtIndex:2] intValue]-1;
             
             //add three vert coords
-            newDataBuffer[buffPos] = AlunVertexData[currVertexPos*3];
-            newDataBuffer[buffPos+1] = AlunVertexData[currVertexPos*3+1];
-            newDataBuffer[buffPos+2] = AlunVertexData[currVertexPos*3+2];
+            dataBuffer[buffPos] = RawVertexData[currVertexPos*3];
+            dataBuffer[buffPos+1] = RawVertexData[currVertexPos*3+1];
+            dataBuffer[buffPos+2] = RawVertexData[currVertexPos*3+2];
             //add three normal coords
             
-            newDataBuffer[buffPos+3] = 1;
-            newDataBuffer[buffPos+4] = 1;
-            newDataBuffer[buffPos+5] = 1;
+            dataBuffer[buffPos+3] = RawNormalData[currNormalPos*3];
+            dataBuffer[buffPos+4] = RawNormalData[currNormalPos*3+1];;
+            dataBuffer[buffPos+5] = RawNormalData[currNormalPos*3+2];;
             //add three text coords
-            newDataBuffer[buffPos+6] = AlunTexData[currTextPos*2];
-            newDataBuffer[buffPos+7] = AlunTexData[currTextPos*2+1];
+            dataBuffer[buffPos+6] = RawTextureData[currTextPos*2];
+            dataBuffer[buffPos+7] = (1-RawTextureData[currTextPos*2+1]);
             
             buffPos+=8;
         }
         
        
+        //**************************************************
+        //***** Create new index buffer by searching for i/j/k string
+        //**************************************************
         
-        //create new indexBuffer
-        GLuint newIndexBuffer[faceCount*3];
+        GLuint indexBuffer[faceCount*3];
+        _indexBufferSize = faceCount*3;
 
         for (int i = 0; i < faceCount*3; i+=3)
         {
 
-            newIndexBuffer[i] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i]];
-            newIndexBuffer[i+1] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+1]];
-            newIndexBuffer[i+2] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+2]];
+            indexBuffer[i] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i]];
+            indexBuffer[i+1] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+1]];
+            indexBuffer[i+2] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+2]];
 
         }
         
                 
-        //TODO implement situation where there are no normals
+//TODO implement situation where there are no normals
         
         
-        _indexBufferSize = faceCount*3;
         
-
+        //**************************************************
+        //***** Fill OpenGL Buffers
+        //**************************************************
 
         // Make the vertex buffer
         glGenBuffers( 1, &_verticesVBO );
         glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
-        //glBufferData( GL_ARRAY_BUFFER, sizeof(objDrawBuffer), objDrawBuffer, GL_STATIC_DRAW );
-        glBufferData( GL_ARRAY_BUFFER, sizeof(newDataBuffer), newDataBuffer, GL_STATIC_DRAW );
+        glBufferData( GL_ARRAY_BUFFER, sizeof(dataBuffer), dataBuffer, GL_STATIC_DRAW );
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
         
         // Make the indices buffer
         glGenBuffers( 1, &_indicesVBO );
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(newIndexBuffer), newIndexBuffer, GL_STATIC_DRAW );
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBuffer), indexBuffer, GL_STATIC_DRAW );
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
         
         // Bind the attribute pointers to the VAO
@@ -306,12 +285,71 @@
     
     //texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(self.texture.target, self.texture.name);
+    //glBindTexture(self.texture.target, self.texture.name);
+    __block Material *m;
+    [self.materials enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        m = obj;
+    }];
+
+    glBindTexture(m.texture.target, m.texture.name);
     
     // Draw!
     glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
     
 }
+
+- (NSMutableDictionary*)getMaterials:(NSString*)fileName
+{
+    NSMutableDictionary *allMaterials = [[NSMutableDictionary alloc] init];
+//TODO: setDefault [allMaterials setObject:[OpenGLWaveFrontMaterial defaultMaterial] forKey:@"default"];
+	NSString *mtlData = [NSString stringWithContentsOfFile:fileName encoding:NSUTF8StringEncoding error:nil];
+	NSArray *mtlLines = [mtlData componentsSeparatedByString:@"\n"];
+	// Can't use fast enumeration here, need to manipulate line order
+	for (int i = 0; i < [mtlLines count]; i++)
+	{
+        NSString *line = [mtlLines objectAtIndex:i];
+		if ([line hasPrefix:@"newmtl"]) // Start of new material
+		{
+            // Determine start of next material
+			int mtlEnd = -1;
+			for (int j = i+1; j < [mtlLines count]; j++)
+			{
+				NSString *innerLine = [mtlLines objectAtIndex:j];
+				if ([innerLine hasPrefix:@"newmtl"])
+				{
+					mtlEnd = j-1;
+					
+					break;
+				}
+                
+			}
+			if (mtlEnd == -1)
+				mtlEnd = [mtlLines count]-1;
+            
+            //now parse current mtl
+            Material *material = [[Material alloc] init];
+            for (int j = i; j <= mtlEnd; j++)
+			{
+				NSString *parseLine = [mtlLines objectAtIndex:j];
+                if ([parseLine hasPrefix:@"newmtl "])
+					material.name = [parseLine substringFromIndex:7];
+                else if ([parseLine hasPrefix:@"map_Kd "])
+				{
+                    NSString *texName = [parseLine substringFromIndex:7];
+					NSString *baseName = [[texName componentsSeparatedByString:@"."] objectAtIndex:0];
+                    NSString *fileType = [[texName componentsSeparatedByString:@"."] objectAtIndex:1];
+                    
+                    [material loadTexture:baseName ofType:fileType];
+                }
+            }
+            //add material to dictionary
+            [allMaterials setObject:material forKey:material.name];
+        }
+    }
+
+    return allMaterials;
+}
+
 
 
 @end
