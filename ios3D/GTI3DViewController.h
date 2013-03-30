@@ -10,6 +10,6 @@
 
 
 
-@interface GTI3DViewController : GLKViewController
+@interface GTI3DViewController : GLKViewController <UIAlertViewDelegate>
 
 @end

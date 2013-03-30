@@ -7,6 +7,7 @@
 //
 
 #import "Node.h"
+#import "Material.h"
 
 @interface WaveFrontObject : Node {
     NSString			*sourceObjFilePath;
@@ -30,7 +31,13 @@
 @property (strong, nonatomic) NSString *sourceMtlFilePath;
 @property (strong, nonatomic) NSMutableDictionary *materials;
 @property (strong, nonatomic) NSMutableArray *groups;
+@property (strong, nonatomic) NSMutableArray *dataBufferArray;
+@property (strong, nonatomic) NSMutableArray *indexBufferArray;
 
-- (id)initWithPath:(NSString *)path program:(GLuint)program;
+- (id)initWithPath:(NSString *)path program:(GLuint)program error:(NSError**)error;
+- (Material*)getDefaultMaterial;
+- (Material*)getMaterialCalled:(NSString*)matName;
+- (void)setProgram:(GLuint)program;
+
 
 @end

@@ -20,31 +20,28 @@
 
 @implementation Scene
 
-- (id)initWithProgram:(GLuint)program {
+- (id)initWithProgram:(GLuint)program error:(NSError**)error{
     if ((self = [super init])) {
         _program = program;
 
-        Material *mat = [[Material alloc] initWithTexture:@"SquareTexture" ofType:@"pvr"];
-        
-        for (int x = -2; x < 2; x++)
-        {
-            for (int z = -2; z < 2; z++)
-            {
-                SimpleCube *cube = [[SimpleCube alloc] initWithMaterial:mat program:_program];
-                cube.position = GLKVector3Make(x, 0, z);
-                cube.scale = 0.5;
-                
-                //[self addChild:cube];
-            }
-        }
+        /*
+        WaveFrontObject *currOBJ = [self addChildOBJ:@"avatar_girl.obj" error:error];
+        if (!currOBJ ) return nil;
+         */
+ 
+        WaveFrontObject *currOBJ = [self addChildOBJ:@"skirt.obj" error:error];
+        if (!currOBJ ) return nil;
+        Material *m = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg"];
+        currOBJ.materialDefault = m;
 
-        SimpleCube *cube = [[SimpleCube alloc] initWithMaterial:mat program:_program];
-       // [self addChild:cube];
         
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"uvcube2" ofType:@"obj"];
-        WaveFrontObject *theObject = [[WaveFrontObject alloc] initWithPath:path program:_program];
-        [self addChild:theObject];
+        currOBJ = [self addChildOBJ:@"tshirt.obj" error:error];
+        if (!currOBJ ) return nil;
+        m = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg"];
+        currOBJ.materialDefault = m;
         
+        currOBJ = [self addChildOBJ:@"floor.obj" error:error];
+        if (!currOBJ ) return nil;
 
     }
     return self;
@@ -64,5 +61,29 @@
     
 }
 
+-(WaveFrontObject*)addChildOBJ:(NSString*)fileName error:(NSError**)error
+{
+    NSString *baseName = [[fileName componentsSeparatedByString:@"."] objectAtIndex:0];
+    NSString *fileType = [[fileName componentsSeparatedByString:@"."] objectAtIndex:1];
+    NSString *path = [[NSBundle mainBundle] pathForResource:baseName ofType:fileType];
+    NSMutableDictionary* details = [NSMutableDictionary dictionary];
+    if (path == nil)
+    {
+        [details setValue:[NSString stringWithFormat:@"Couldn't find file %@",fileName] forKey:NSLocalizedDescriptionKey] ;
+        *error = [NSError errorWithDomain:@"OBJ" code:001 userInfo:details];
+        return nil;
+    }
+    
+    WaveFrontObject *theObject = [[WaveFrontObject alloc] initWithPath:path program:_program error:error];
+
+    if (!theObject) {
+        // inspect error
+        //NSLog(@"%@", [errorr localizedDescription]);
+        return false;
+    }
+    else [self addChild:theObject];
+    return theObject;
+
+}
 
 @end

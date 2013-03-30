@@ -7,7 +7,7 @@
 //
 
 #import "WaveFrontObject.h"
-#import "Material.h"
+
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
 
 
@@ -29,21 +29,23 @@
 @synthesize sourceObjFilePath;
 @synthesize sourceMtlFilePath;
 @synthesize materials;
-@synthesize groups;
+@synthesize groups, dataBufferArray, indexBufferArray;
 
-- (id)initWithPath:(NSString *)path program:(GLuint)program;
+- (id)initWithPath:(NSString *)path program:(GLuint)program error:(NSError **)error;
 {
 	
 	if ((self = [super init]))
 	{
 		_program = program;
         
+        self.materialDefault = [[Material alloc] init];
+        
         //**************************************************
         //* Load file
         //**************************************************
 		self.sourceObjFilePath = path;
 		NSString *objData = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
-		int vertexCount = 0, faceCount = 0, textureCoordsCount=0, groupCount = 0;
+		int vertexCount = 0, normalCount = 0, faceCount = 0, textureCoordsCount=0, groupCount = 0, existMatFile = 0, quadTriError = 0;
         
         //**************************************************
         //***** Iterate through file once to discover how many vertices, normals, and faces there are *****//
@@ -58,6 +60,8 @@
 		{
 			if ([line hasPrefix:@"v "])
 				vertexCount++;
+            else if ([line hasPrefix:@"vn "])
+				normalCount++;
 			else if ([line hasPrefix:@"vt "])
 			{
 				textureCoordsCount++;
@@ -74,48 +78,115 @@
 				NSString *truncLine = [line substringFromIndex:7];
 				self.sourceMtlFilePath = truncLine;
                 NSString *mtlPath = [[NSBundle mainBundle] pathForResource:[[truncLine lastPathComponent] stringByDeletingPathExtension] ofType:[truncLine pathExtension]];
+                
+                
                 self.materials = [self getMaterials:mtlPath];
+                existMatFile = 1;
 			}
 			else if ([line hasPrefix:@"g"])
 				groupCount++;
 			else if ([line hasPrefix:@"f"])
 			{
-				faceCount++;
-                //the line without the initial "f "
-				NSString *faceLine = [line substringFromIndex:2];
 
+				NSString *faceLine = [line substringFromIndex:2];
 				NSArray *faces = [faceLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-				for (NSString *oneFace in faces)
-				{
-                    [indexArray addObject:oneFace]; // add all three
-                    if (![vertexCombinations containsObject:oneFace])
-						[vertexCombinations addObject:oneFace];
-					               
-					/* // ********* DECOMMENT THIS IF WE WANT TO CALCULATE NORMALS OURSELVES *******
-                    NSArray *faceParts = [oneFace componentsSeparatedByString:@"/"];
-					NSString *faceKey = [NSString stringWithFormat:@"%@/%@", [faceParts objectAtIndex:0], ([faceParts count] > 1) ? [faceParts objectAtIndex:1] : 0];
-					if (![vertexCombinations containsObject:faceKey])
-						[vertexCombinations addObject:faceKey];
-                    */
-                     
-				}
+                
+                if ([faces count] == 3){ //tris okay no problem
+                    faceCount++;
+                    for (NSString *oneFace in faces)
+                    {
+                        [indexArray addObject:oneFace]; // add all three
+                        if (![vertexCombinations containsObject:oneFace])
+                            [vertexCombinations addObject:oneFace];
+                                       
+                        /* // ********* DECOMMENT THIS IF WE WANT TO CALCULATE NORMALS OURSELVES *******
+                        NSArray *faceParts = [oneFace componentsSeparatedByString:@"/"];
+                        NSString *faceKey = [NSString stringWithFormat:@"%@/%@", [faceParts objectAtIndex:0], ([faceParts count] > 1) ? [faceParts objectAtIndex:1] : 0];
+                        if (![vertexCombinations containsObject:faceKey])
+                            [vertexCombinations addObject:faceKey];
+                        */
+                         
+                    }
+                }
+                else if ([faces count] == 4) //make two tris from quad
+                {
+                    faceCount+=2;
+                    [indexArray addObject:[faces objectAtIndex:0]]; // 0-1-2 0-2-3
+                    [indexArray addObject:[faces objectAtIndex:1]];
+                    [indexArray addObject:[faces objectAtIndex:2]];
+                    
+                    [indexArray addObject:[faces objectAtIndex:0]];
+                    [indexArray addObject:[faces objectAtIndex:2]];
+                    [indexArray addObject:[faces objectAtIndex:3]];
+                    for (NSString *oneFace in faces)
+                        if (![vertexCombinations containsObject:oneFace])
+                            [vertexCombinations addObject:oneFace];
+                }
+                else quadTriError = 1;
 			}
 			
 		}
-        NSLog(@"Verts: %i",vertexCount);
-        NSLog(@"Textu: %i",textureCoordsCount);
+        
+        //**************************************************
+        //***** Check to make sure file is valid and fix bugs
+        //**************************************************
+        //print some info to console
+        NSLog(@"Vert Coords: %i",vertexCount);
+        NSLog(@"Norm Coords: %i",normalCount);
+        NSLog(@"Texture Coords: %i",textureCoordsCount);
         NSLog(@"Faces: %i",faceCount);
-        NSLog(@"index: %i",[indexArray count]);
+        NSLog(@"Index (should be faces*3): %i",[indexArray count]);
         NSLog(@"materialcount: %i",[self.materials count]);
         for(id key in self.materials)
-            NSLog(@"key=%@ value=%@", key, [self.materials objectForKey:key]);
+            NSLog(@"Material: key=%@", key);
+        
+        
+        //handle case where there is no mat file
+         if (existMatFile == 0)
+         {
+             self.materials = [self handleNoMaterialFile];
+             NSLog(@"There was no material file found, setting default");
+         }
+        
+        //throw errors
+        NSMutableDictionary* details = [NSMutableDictionary dictionary];
+        if (path == nil) // filename is wrong
+        {
+            [details setValue:@"Error in path to obj file" forKey:NSLocalizedDescriptionKey];
+            *error = [NSError errorWithDomain:@"OBJ" code:001 userInfo:details];
+            return nil;
+        }
+        else if (faceCount*3!=[indexArray count])
+        {
+            [details setValue:@"App doesn't support OBJ file which contains both quads and tris" forKey:NSLocalizedDescriptionKey];
+            *error = [NSError errorWithDomain:@"OBJ" code:001 userInfo:details];
+            return nil;
+        }
+        else if (quadTriError == 1)
+        {
+            [details setValue:@"OBJ file has neither quads nor tris" forKey:NSLocalizedDescriptionKey];
+            *error = [NSError errorWithDomain:@"OBJ" code:001 userInfo:details];
+            return nil;
+        }
+        else if (valuesPerCoord !=2)
+        {
+            [details setValue:@"App only supports UV texture coordinates in OBJ files - vt parameters have more than 2 values" forKey:NSLocalizedDescriptionKey];
+            // populate the error object with the details
+            *error = [NSError errorWithDomain:@"OBJ" code:002 userInfo:details];
+            return nil;
+        }
+
+
+        
+        
+        
         
         //**************************************************
         //***** Fill arrays with data from file
         //**************************************************
         
         GLfloat RawVertexData[vertexCount*3];
-        GLfloat RawNormalData[vertexCount*3];
+        GLfloat RawNormalData[normalCount*3];
         GLfloat RawTextureData[textureCoordsCount*2];
                
         int vertexCountx3 = 0;
@@ -128,18 +199,22 @@
 			{
 				NSString *lineTrunc = [line substringFromIndex:2];
 				NSArray *lineVertices = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                
-                RawVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:0] floatValue];
-                RawVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:1] floatValue];
-                RawVertexData[vertexCountx3++] = [[lineVertices objectAtIndex:2] floatValue];
+
+                RawVertexData[vertexCountx3] = [[lineVertices objectAtIndex:0] floatValue];
+                RawVertexData[vertexCountx3+1] = [[lineVertices objectAtIndex:1] floatValue];
+                RawVertexData[vertexCountx3+2] = [[lineVertices objectAtIndex:2] floatValue];
+                vertexCountx3+=3;
 			}
+            
             else if ([line hasPrefix: @"vn "])
 			{
 				NSString *lineTrunc = [line substringFromIndex:3];
 				NSArray *lineNorms = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                RawNormalData[normCountx3++] = [[lineNorms objectAtIndex:0] floatValue];
-                RawNormalData[normCountx3++] = [[lineNorms objectAtIndex:1] floatValue];
-                RawNormalData[normCountx3++] = [[lineNorms objectAtIndex:2] floatValue];
+                RawNormalData[normCountx3] = [[lineNorms objectAtIndex:0] floatValue];
+                RawNormalData[normCountx3+1] = [[lineNorms objectAtIndex:1] floatValue];
+                RawNormalData[normCountx3+2] = [[lineNorms objectAtIndex:2] floatValue];
+                normCountx3+=3;
+
             }
             else if ([line hasPrefix: @"vt "])
 			{
@@ -151,7 +226,8 @@
 
             
         }
-    
+
+        
         //**************************************************
         //***** Fill arrays with data from file
         //**************************************************
@@ -183,13 +259,15 @@
             buffPos+=8;
         }
         
-       
+   
         //**************************************************
         //***** Create new index buffer by searching for i/j/k string
         //**************************************************
         
         GLuint indexBuffer[faceCount*3];
         _indexBufferSize = faceCount*3;
+
+        NSTimeInterval bob = [NSDate timeIntervalSinceReferenceDate];
 
         for (int i = 0; i < faceCount*3; i+=3)
         {
@@ -199,10 +277,22 @@
             indexBuffer[i+2] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+2]];
 
         }
+        NSTimeInterval bab = [NSDate timeIntervalSinceReferenceDate] - bob;
+        NSLog(@"Time to create index buffers %f", bab);
         
-                
+        //**************************************************
+        //***** Expose buffers for further serialization
+        //**************************************************
+        self.dataBufferArray = [[NSMutableArray alloc] initWithCapacity:dataBufferSize*8];
+        for (int i = 0; i < dataBufferSize*8; i++)
+            [self.dataBufferArray addObject:[[NSNumber alloc] initWithFloat:dataBuffer[i]]];
+        
+        self.indexBufferArray = [[NSMutableArray alloc] initWithCapacity:faceCount*3];
+        for (int i = 0; i < dataBufferSize*8; i++)
+            [self.indexBufferArray addObject:[[NSNumber alloc] initWithFloat:indexBuffer[i]]];
+
+        
 //TODO implement situation where there are no normals
-        
         
         
         //**************************************************
@@ -283,25 +373,58 @@
     GLKVector3 l = GLKVector3Make(0.0f , 0.0f, 0.0f);
     glUniformMatrix4fv(matL, 1, GL_FALSE, l.v);
     
+    
+    GLint diffuseUniform = glGetUniformLocation(_program, "Diffuse");
+    GLKVector4 bob = GLKVector4Make(self.materialDefault.diffuse.r,self.materialDefault.diffuse.g,self.materialDefault.diffuse.b,1.0);
+    //printf("\n %f \n",self.materialDefault.diffuse.r);
+    glUniform4f(diffuseUniform, bob.r, bob.g, bob.b, 1.0f);
+    
+    
     //texture
     glActiveTexture(GL_TEXTURE0);
     //glBindTexture(self.texture.target, self.texture.name);
-    __block Material *m;
+    /*__block Material *m;
     [self.materials enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         m = obj;
-    }];
+    }];*/
+    
 
-    glBindTexture(m.texture.target, m.texture.name);
+    glBindTexture(self.materialDefault.texture.target, self.materialDefault.texture.name);
     
     // Draw!
     glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
     
+    
 }
+
+- (NSMutableDictionary*)handleNoMaterialFile
+{
+    NSMutableDictionary *allMaterials = [[NSMutableDictionary alloc] init];
+    
+    //**************************************************
+    //***** Set default material
+    //**************************************************
+    Material *defaultMat = [[Material alloc] init];
+    defaultMat.name = @"default";
+    [allMaterials setObject:defaultMat forKey:defaultMat.name];
+    return allMaterials;
+}
+
 
 - (NSMutableDictionary*)getMaterials:(NSString*)fileName
 {
     NSMutableDictionary *allMaterials = [[NSMutableDictionary alloc] init];
-//TODO: setDefault [allMaterials setObject:[OpenGLWaveFrontMaterial defaultMaterial] forKey:@"default"];
+    
+    //**************************************************
+    //***** Set default material
+    //**************************************************
+    Material *defaultMat = [[Material alloc] init];
+    defaultMat.name = @"default";
+    [allMaterials setObject:defaultMat forKey:defaultMat.name];
+    
+    //**************************************************
+    //***** Set default material
+    //**************************************************
 	NSString *mtlData = [NSString stringWithContentsOfFile:fileName encoding:NSUTF8StringEncoding error:nil];
 	NSArray *mtlLines = [mtlData componentsSeparatedByString:@"\n"];
 	// Can't use fast enumeration here, need to manipulate line order
@@ -333,6 +456,27 @@
 				NSString *parseLine = [mtlLines objectAtIndex:j];
                 if ([parseLine hasPrefix:@"newmtl "])
 					material.name = [parseLine substringFromIndex:7];
+                else if ([parseLine hasPrefix:@"Ns "])
+					material.shininess = [[parseLine substringFromIndex:3] floatValue];
+				else if ([parseLine hasPrefix:@"Ka spectral"]) // Ignore, don't want consumed by next else
+				{
+					
+				}
+				else if ([parseLine hasPrefix:@"Ka "])  // CIEXYZ currently not supported, must be specified as RGB
+				{
+					NSArray *colorParts = [[parseLine substringFromIndex:3] componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                    material.ambient = GLKVector4Make([[colorParts objectAtIndex:0] floatValue], [[colorParts objectAtIndex:1] floatValue], [[colorParts objectAtIndex:2] floatValue], 1.0);
+				}
+				else if ([parseLine hasPrefix:@"Kd "])
+				{
+					NSArray *colorParts = [[parseLine substringFromIndex:3] componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+					material.diffuse =  GLKVector4Make([[colorParts objectAtIndex:0] floatValue], [[colorParts objectAtIndex:1] floatValue], [[colorParts objectAtIndex:2] floatValue], 1.0);
+				}
+				else if ([parseLine hasPrefix:@"Ks "])
+				{
+					NSArray *colorParts = [[parseLine substringFromIndex:3] componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+					material.specular =  GLKVector4Make([[colorParts objectAtIndex:0] floatValue], [[colorParts objectAtIndex:1] floatValue], [[colorParts objectAtIndex:2] floatValue], 1.0);
+                }
                 else if ([parseLine hasPrefix:@"map_Kd "])
 				{
                     NSString *texName = [parseLine substringFromIndex:7];
@@ -340,8 +484,11 @@
                     NSString *fileType = [[texName componentsSeparatedByString:@"."] objectAtIndex:1];
                     
                     [material loadTexture:baseName ofType:fileType];
+                    //assign this material as the default
+                    self.materialDefault = material;
                 }
             }
+
             //add material to dictionary
             [allMaterials setObject:material forKey:material.name];
         }
@@ -350,6 +497,15 @@
     return allMaterials;
 }
 
+- (Material*)getDefaultMaterial
+{
+    return [self.materials objectForKey:@"default"];
+}
+
+- (Material*)getMaterialCalled:(NSString*)matName
+{
+    return [self.materials objectForKey:@"default"];
+}
 
 
 @end

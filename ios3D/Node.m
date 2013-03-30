@@ -14,6 +14,7 @@
 @synthesize children = _children;
 @synthesize rotation = _rotation;
 @synthesize scale = _scale;
+@synthesize materialDefault = _materialDefault;
 
 - (id)init {
     if ((self = [super init])) {

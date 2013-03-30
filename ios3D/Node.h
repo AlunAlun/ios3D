@@ -8,13 +8,15 @@
 
 #import <Foundation/Foundation.h>
 #import <GLKit/GLKit.h>
+#import "Material.h"
 
 @interface Node : NSObject
 
 @property (assign) GLKVector3 position;
-@property (retain) NSMutableArray * children;
+@property (strong) NSMutableArray * children;
 @property (assign) float rotation;
 @property (assign) float scale;
+@property (strong) Material *materialDefault;
 
 
 - (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix;

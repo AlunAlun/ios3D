@@ -11,11 +11,19 @@
 @implementation Material
 @synthesize texture = _texture;
 @synthesize name = _name;
+@synthesize diffuse = _diffuse;
+@synthesize ambient = _ambient;
+@synthesize specular = _specular;
+@synthesize shininess = _shininess;
 
 -(id)init
 {
     if ((self = [super init])) {
-
+        self.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+        self.diffuse = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+        self.specular = GLKVector4Make(0.0, 0.0, 0.0, 1.0);
+        self.shininess = 65.0;
+        [self loadTexture:@"white" ofType:@"png"];
     }
     return self;
 }
@@ -31,7 +39,10 @@
             NSLog(@"Error loading texture from image: %@", error);
             exit(1);
         }
-        
+        self.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+        self.diffuse = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+        self.specular = GLKVector4Make(0.0, 0.0, 0.0, 1.0);
+        self.shininess = 65.0;
     }
     return self;
 }

@@ -10,6 +10,6 @@
 
 @interface Scene : Node
 
-- (id)initWithProgram:(GLuint)program;
+- (id)initWithProgram:(GLuint)program error:(NSError**)error;
 
 @end

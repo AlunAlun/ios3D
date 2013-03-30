@@ -270,8 +270,8 @@ typedef struct
     [self createProgram];
     [self getUniforms];
     
-    _modelViewMatrix = GLKMatrix4MakeLookAt(2.0f, 2.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), (float)width/(float)height, 0.01f, 100.0f);
+    _modelViewMatrix = GLKMatrix4MakeLookAt(0.0f, 150.0f, 300.0f, 0.0f, 80.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), (float)width/(float)height, 100.0f, 1000.0f);
       
     
     //gestures/input
@@ -290,7 +290,21 @@ typedef struct
     
  
     //cargar la unica escena que hemos creado hasta ahora
-    self.currentScene = [[Scene alloc] initWithProgram:_program];
+    NSError* error = nil;
+    self.currentScene = [[Scene alloc] initWithProgram:_program error:&error];
+    if (!self.currentScene)
+    {
+        NSLog(@"%@", [error localizedDescription]);
+
+        UIAlertView *alert = [[UIAlertView alloc]
+                              initWithTitle: @"D'oh!"
+                              message: [error localizedDescription]
+                              delegate: nil
+                              cancelButtonTitle:@"Bugger"
+                              otherButtonTitles:nil];
+        [alert show];
+
+    }
     //self.cube = [[SimpleCube alloc] initWithFile:@"SquareTexture" program:_program];
 }
 
@@ -313,16 +327,17 @@ typedef struct
 
 -(void)Scale:(UITapGestureRecognizer*)sender
 {
-    if([(UIPinchGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
-        
-		_lastScale = 1.0;
-		return;
-	}
+    NSLog(@"%f", _lastScale);
+
     CGFloat scale = 1.0 - (_lastScale - [(UIPinchGestureRecognizer*)sender scale]);
 
     float newScale = MAX(0.3, MIN(GLKMathDegreesToRadians(45.0f)*scale, 3));
-    _projectionMatrix = GLKMatrix4MakePerspective(newScale, (float)_screenWidth/(float)_screenHeight, 0.01f, 100.0f);
-     
+    _projectionMatrix = GLKMatrix4MakePerspective(newScale, (float)_screenWidth/(float)_screenHeight, 100.0f, 1000.0f);
+    if([(UIPinchGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+        
+		_lastScale = newScale;
+		return;
+	}
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -346,7 +361,7 @@ typedef struct
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
     // Clear the screen
-    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
     
     //parse the scene
