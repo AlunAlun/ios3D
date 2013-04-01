@@ -11,7 +11,7 @@
 
 @interface SimpleCube : Node
 
-- (id)initWithFile:(NSString *)fileName program:(GLuint)program;
+- (id)initWithProgram:(GLuint)program;
 - (id)initWithMaterial:(Material *)mat program:(GLuint)program;
 
 @end

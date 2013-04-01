@@ -9,6 +9,7 @@
 #import "SimpleCube.h"
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
 
+/*
 GLfloat CcubeVertexData[64] =
 {
     1.169504f, -1.209790f, -1.182525f, 0.000000f, 0.000000f, 1.000000f, 0.000000f, 1.000000f,
@@ -20,8 +21,8 @@ GLfloat CcubeVertexData[64] =
     -0.830496f, 0.790210f, 0.817474f, 0.000000f, 0.000000f, 1.000000f, 0.000000f, 1.000000f,
     -0.830496f, 0.790210f, -1.182525f, 0.000000f, 0.000000f, 1.000000f, 0.000000f, 1.000000f
 };
+*/
 
-/*
 GLfloat CcubeVertexData[192] =
 {
     // right 0
@@ -60,8 +61,8 @@ GLfloat CcubeVertexData[192] =
     -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  1.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
 };
-*/
 
+/*
 GLuint CcubeIndicesData[36] =
 {
     4,  0,  7,
@@ -77,8 +78,8 @@ GLuint CcubeIndicesData[36] =
     0,  1,  2, 
     0,  2,  3
 };
+*/
 
-/*
 GLuint CcubeIndicesData[36] =
 {
     // right
@@ -99,7 +100,7 @@ GLuint CcubeIndicesData[36] =
     // back
     20, 21, 22,     22, 23, 20
 };
-*/
+
  
 @interface SimpleCube()
 {
@@ -116,6 +117,7 @@ GLuint CcubeIndicesData[36] =
 @implementation SimpleCube
 @synthesize texture = _textureInfo;
 
+/*
 - (id)initWithFile:(NSString *)fileName program:(GLuint)program
 {
     if ((self = [super init])) {
@@ -135,15 +137,14 @@ GLuint CcubeIndicesData[36] =
     }
     return self;
 }
+ */
 
-- (id)initWithMaterial:(Material *)mat program:(GLuint)program
+- (id)initWithProgram:(GLuint)program
 {
     if ((self = [super init])) {
         _program = program;
+        self.materialDefault = [[Material alloc] init];
         
-        //assign texture
-        self.texture = mat.texture;
-
         [self setupBuffers];
         
     }
@@ -203,7 +204,6 @@ GLuint CcubeIndicesData[36] =
     glBindVertexArrayOES( _VAO );
     glUseProgram( _program );
     
-    
     GLint matMV = glGetUniformLocation(_program, "ModelViewMatrix");
     glUniformMatrix4fv(matMV, 1, GL_FALSE, modelViewMatrix.m);
     
@@ -218,13 +218,36 @@ GLuint CcubeIndicesData[36] =
         glUniformMatrix3fv(matN, 1, GL_FALSE, normalMatrix3.m);
     }
     
+    
     GLint matL = glGetUniformLocation(_program, "LightPosition");
-    GLKVector3 l = GLKVector3Make(0.0f , 0.0f, 0.0f);
-    glUniformMatrix4fv(matL, 1, GL_FALSE, l.v);
+    GLKVector3 l = GLKVector3Make(100.0f , 300.0f, 300.0f);
+    glUniform3f(matL, l.x, l.y, l.z);
+    
+    GLint lightIntensityUniform = glGetUniformLocation(_program, "LightIntensity");
+    glUniform1f(lightIntensityUniform, 1.3);
+    
+    GLint diffuseUniform = glGetUniformLocation(_program, "matDiffuse");
+    glUniform4f(diffuseUniform, self.materialDefault.diffuse.r, self.materialDefault.diffuse.g, self.materialDefault.diffuse.b, 1.0f);
+    
+    GLint ambientUniform = glGetUniformLocation(_program, "matAmbient");
+    glUniform4f(ambientUniform, self.materialDefault.ambient.r, self.materialDefault.ambient.g, self.materialDefault.ambient.b, 1.0f);
+    
+    GLint specularUniform = glGetUniformLocation(_program, "matSpecular");
+    glUniform4f(specularUniform, self.materialDefault.specular.r, self.materialDefault.specular.g, self.materialDefault.specular.b, 1.0f);
+    
+    GLint shininessUniform = glGetUniformLocation(_program, "matShininess");
+    glUniform1f(shininessUniform, self.materialDefault.shininess);
+    
+    GLint baseImageLoc = glGetUniformLocation(_program, "TextureSampler");
+    glUniform1i(baseImageLoc, 0); //Texture unit 0 is for base images.
+    
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     //texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(self.texture.target, self.texture.name);
+    glBindTexture(self.materialDefault.texture.target, self.materialDefault.texture.name);
     
     // Draw!
     glDrawElements( GL_TRIANGLES, sizeof(CcubeIndicesData)/sizeof(GLuint), GL_UNSIGNED_INT, NULL );

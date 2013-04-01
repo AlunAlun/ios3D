@@ -10,38 +10,60 @@
 #import "SimpleCube.h"
 #import "Material.h"
 #import "WaveFrontObject.h"
+#import "GTI3DViewController.h"
 
 @interface Scene ()
 {
     GLuint _program;
 }
 
+@property(nonatomic, strong) NSMutableArray *textures;
+@property(nonatomic, strong) NSMutableArray *materials;
+@property(nonatomic, strong) NSMutableArray *objects;
+
 @end
 
 @implementation Scene
+@synthesize textures;
 
 - (id)initWithProgram:(GLuint)program error:(NSError**)error{
     if ((self = [super init])) {
         _program = program;
 
-        /*
-        WaveFrontObject *currOBJ = [self addChildOBJ:@"avatar_girl.obj" error:error];
-        if (!currOBJ ) return nil;
-         */
- 
-        WaveFrontObject *currOBJ = [self addChildOBJ:@"skirt.obj" error:error];
-        if (!currOBJ ) return nil;
-        Material *m = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg"];
-        currOBJ.materialDefault = m;
-
         
+        WaveFrontObject *avatarOBJ = [self addChildOBJ:@"avatar_girl.obj" error:error];
+        if (!avatarOBJ ) return nil;
+        avatarOBJ.name = @"Avatar";
+         
+        /*
+        WaveFrontObject *skirtOBJ = [self addChildOBJ:@"skirt.obj" error:error];
+        if (!skirtOBJ ) return nil;
+        skirtOBJ.name = @"Skirt";
+        Material *m = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg"];
+        skirtOBJ.materialDefault = m;
+        [m loadDetailTexture:@"detail_jeans" ofType:@"png"];
+        /*
         currOBJ = [self addChildOBJ:@"tshirt.obj" error:error];
         if (!currOBJ ) return nil;
         m = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg"];
         currOBJ.materialDefault = m;
+        */
+        /*
+        WaveFrontObject *floorOBJ = [self addChildOBJ:@"floor.obj" error:error];
+        if (!floorOBJ ) return nil;
+        floorOBJ.name = @"Floor";
+        m = [[Material alloc] init];
+        m.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+        [m loadDetailTexture:@"white" ofType:@"png"];
+        floorOBJ.materialDefault = m;
+         */
+       
+        /*SimpleCube *cube = [[SimpleCube alloc] initWithProgram:program];
+        cube.name = @"cube";
+        cube.scale = 300.0f;
+        [self addChild:cube];
+         */
         
-        currOBJ = [self addChildOBJ:@"floor.obj" error:error];
-        if (!currOBJ ) return nil;
 
     }
     return self;

@@ -9,72 +9,17 @@
 #define VERTEX_SHADER @"vertex"
 #define FRAGMENT_SHADER @"fragment"
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
-#define TOUCHSENSITIVITY 200
+#define ROTATETOUCHSENSITIVITY 0.005
+#define PANTOUCHSENSITIVITY 0.1
+#define ZOOMTOUCHSENSITIVITY 0.5
 
 #import "GTI3DViewController.h"
 #import "Node.h"
 #import "Scene.h"
 #import "SimpleCube.h"
+#import "ControlPanel.h"
+#import "AssetsSingleton.h"
 
-GLfloat CubeVertexData[192] =
-{
-    // right 0
-    0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
-    0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
-    0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-    
-    // top 4
-    0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
-    
-    // left 8
-    -0.5f,  0.5f, -0.5f,    -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,    -1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,    -1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,    -1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-    
-    // bottom 12
-    -0.5f, -0.5f, -0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-    0.5f, -0.5f,  0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,    0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-    
-    // front 16
-    0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-    0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-    
-    // back 20
-    0.5f,  0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
-};
-
-GLuint CubeIndicesData[36] =
-{
-    // right
-    0, 1, 2,        2, 3, 0,
-    
-    // top
-    4, 5, 6,        6, 7, 4,
-    
-    // left
-    8, 9, 10,       10, 11, 8,
-    
-    // bottom
-    12, 13, 14,     14, 15, 12,
-    
-    // front
-    16, 17, 18,     18, 19, 16,
-    
-    // back
-    20, 21, 22,     22, 23, 20
-};
 
 typedef struct
 {
@@ -113,6 +58,8 @@ typedef struct
     float _xTouchLoc;
     float _yTouchLoc;
     float _lastScale;
+    
+    BOOL _isPanel;
 
 }
 @property (strong, nonatomic) EAGLContext *context;
@@ -125,6 +72,7 @@ typedef struct
 @synthesize context = _context;
 @synthesize texture = _texture;
 @synthesize currentScene = _currentScene;
+@synthesize controlPanel = _controlPanel;
 
 
 - (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType
@@ -232,6 +180,25 @@ typedef struct
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    CGRect mainScreenFrame = [[UIScreen mainScreen] applicationFrame];
+    
+    // Set up the image view
+    UIImage *img = [UIImage imageWithContentsOfFile: [[NSBundle mainBundle] pathForResource:@"detail_jeans" ofType:@"png"]];
+    UIImageView *_imageView = [[UIImageView alloc] initWithFrame:mainScreenFrame];
+    _imageView.image = img;
+    
+    
+    // Set up the spinner
+    UIActivityIndicatorView *_spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    [_spinner setCenter:CGPointMake(mainScreenFrame.size.height/3.0f*1.85f, mainScreenFrame.size.width/10.0f*7.55f)];
+    [_imageView addSubview:_spinner];
+    [_spinner startAnimating];
+    
+    // Show the loading image
+    //[self.view addSubview:_imageView];
+    
+    
 	// Do any additional setup after loading the view, typically from a nib.
     // Create context
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
@@ -254,10 +221,11 @@ typedef struct
     // Change the format of the depth renderbuffer
     // This value is None by default
     view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
+    //view.drawableMultisample = GLKViewDrawableMultisample4X;
     
     // Enable face culling and depth test
     glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE  );
+    //glEnable( GL_CULL_FACE  );
     
     // Set up the viewport
     int width = view.bounds.size.width;
@@ -270,9 +238,11 @@ typedef struct
     [self createProgram];
     [self getUniforms];
     
-    _modelViewMatrix = GLKMatrix4MakeLookAt(0.0f, 150.0f, 300.0f, 0.0f, 80.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    _modelViewMatrix = GLKMatrix4MakeLookAt(0.0f, 150.0f, 200.0f, 0.0f, 100.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), (float)width/(float)height, 100.0f, 1000.0f);
-      
+    
+
+
     
     //gestures/input
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(Tapped:)];
@@ -282,6 +252,8 @@ typedef struct
     UIPinchGestureRecognizer *pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(Scale:)];
 	[view addGestureRecognizer:pinchRecognizer];
     
+    
+
     _isDragging = false;	
     _xTouchLoc = -1.0f;
     _yTouchLoc = -1.0f;
@@ -292,6 +264,7 @@ typedef struct
     //cargar la unica escena que hemos creado hasta ahora
     NSError* error = nil;
     self.currentScene = [[Scene alloc] initWithProgram:_program error:&error];
+
     if (!self.currentScene)
     {
         NSLog(@"%@", [error localizedDescription]);
@@ -305,36 +278,63 @@ typedef struct
         [alert show];
 
     }
-    //self.cube = [[SimpleCube alloc] initWithFile:@"SquareTexture" program:_program];
+    else{
+        //add scene to singleton
+        [AssetsSingleton sharedAssets].scene = (Scene*)self.currentScene;
+        
+        // panel stuff
+        _isPanel = YES;
+        [self.controlPanel drawTree];
+    }
+
+
+
+
 }
 
 // This is the selector/callback for gestures
 
+
+-(void)ShowHidePanel
+{
+
+    if (!_isPanel)
+    {
+        
+        _isPanel = YES;
+        [UIView beginAnimations:nil context:nil];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+        [UIView setAnimationDuration:0.3];
+        self.controlPanel.frame = CGRectMake(self.controlPanel.frame.origin.x-300,0,self.controlPanel.frame.size.width, self.controlPanel.frame.size.height);
+        [UIView commitAnimations];
+    }
+    else{
+        _isPanel = NO;
+        [UIView beginAnimations:nil context:nil];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+        [UIView setAnimationDuration:0.3];
+        self.controlPanel.frame = CGRectMake(self.controlPanel.frame.origin.x+300,0,self.controlPanel.frame.size.width, self.controlPanel.frame.size.height);
+        [UIView commitAnimations];
+    }
+}
+
 -(void)Tapped:(UITapGestureRecognizer*)sender
 {
-    if(sender.state == UIGestureRecognizerStateEnded)
+    if ([(UITapGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded)
     {
-        _autoRotate = !_autoRotate;
-        if (_autoRotate) {
-            _cursor = 0.05;
-        }
-        else
-        {
-            _cursor = 0;
-        }
+        [self ShowHidePanel];
     }
 }
 
 -(void)Scale:(UITapGestureRecognizer*)sender
 {
-    NSLog(@"%f", _lastScale);
+    
 
-    CGFloat scale = 1.0 - (_lastScale - [(UIPinchGestureRecognizer*)sender scale]);
+    CGFloat scale = _lastScale + (1.0 - [(UIPinchGestureRecognizer*)sender scale])*ZOOMTOUCHSENSITIVITY;
 
-    float newScale = MAX(0.3, MIN(GLKMathDegreesToRadians(45.0f)*scale, 3));
-    _projectionMatrix = GLKMatrix4MakePerspective(newScale, (float)_screenWidth/(float)_screenHeight, 100.0f, 1000.0f);
+    float newScale = MAX(0.1, MIN(scale, 3));
+    _projectionMatrix = GLKMatrix4MakePerspective(newScale*GLKMathDegreesToRadians(45.0f), (float)_screenWidth/(float)_screenHeight, 100.0f, 1000.0f);
     if([(UIPinchGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
-        
 		_lastScale = newScale;
 		return;
 	}
@@ -352,7 +352,10 @@ typedef struct
 {
     UITouch *touch = [[event allTouches] anyObject];
     CGPoint location = [touch locationInView:touch.view];
-    _modelViewMatrix = GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)/TOUCHSENSITIVITY);
+    //_modelViewMatrix = GLKMatrix4Translate(_modelViewMatrix, 0, (location.y-_yTouchLoc)*PANTOUCHSENSITIVITY, 0);
+    GLKMatrix4 tm = GLKMatrix4Translate(GLKMatrix4Identity, 0, (location.y-_yTouchLoc)*PANTOUCHSENSITIVITY, 0);
+    
+    _modelViewMatrix = GLKMatrix4Multiply(tm, GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY));
     _xTouchLoc = location.x;
     _yTouchLoc = location.y;    	
 }
@@ -361,13 +364,19 @@ typedef struct
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
     // Clear the screen
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
     
-    //parse the scene
-    [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
+    
+    CFTimeInterval previousTimestamp = CFAbsoluteTimeGetCurrent();
     
 
+
+    //parse the scene
+    [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
+        
+    CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
+    self.performanceLabel.text = [NSString stringWithFormat:@"Frame duration: %f ms", frameDuration * 1000.0];
     
 }
 
@@ -407,8 +416,7 @@ typedef struct
     }
     free(_uniformArray);
     
-    self.context = nil;
-    self.texture = nil;
+
 }
 
 @end

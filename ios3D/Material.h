@@ -12,6 +12,7 @@
 @interface Material : NSObject
 
 @property(strong) GLKTextureInfo *texture;
+@property(strong) GLKTextureInfo *textureDetail;
 @property(strong) NSString *name;
 @property GLKVector4 diffuse;
 @property GLKVector4 ambient;
@@ -20,5 +21,6 @@
 
 -(id)initWithTexture:(NSString*)filename ofType:(NSString*)type;
 -(void)loadTexture:(NSString*)filename ofType:(NSString*)type;
+-(void)loadDetailTexture:(NSString *)filename ofType:(NSString*)type;
 
 @end

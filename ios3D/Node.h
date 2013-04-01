@@ -17,6 +17,7 @@
 @property (assign) float rotation;
 @property (assign) float scale;
 @property (strong) Material *materialDefault;
+@property (strong) NSString *name;
 
 
 - (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix;

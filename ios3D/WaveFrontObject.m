@@ -369,19 +369,48 @@
         glUniformMatrix3fv(matN, 1, GL_FALSE, normalMatrix3.m);
     }
     
+
     GLint matL = glGetUniformLocation(_program, "LightPosition");
-    GLKVector3 l = GLKVector3Make(0.0f , 0.0f, 0.0f);
-    glUniformMatrix4fv(matL, 1, GL_FALSE, l.v);
+    GLKVector3 l = GLKVector3Make(100.0f , 300.0f, 300.0f);
+    glUniform3f(matL, l.x, l.y, l.z);
+    
+    GLint lightIntensityUniform = glGetUniformLocation(_program, "LightIntensity");
+    glUniform1f(lightIntensityUniform, 1.3);
+    
+    GLint diffuseUniform = glGetUniformLocation(_program, "matDiffuse");
+    glUniform4f(diffuseUniform, self.materialDefault.diffuse.r, self.materialDefault.diffuse.g, self.materialDefault.diffuse.b, 1.0f);
+    
+    GLint ambientUniform = glGetUniformLocation(_program, "matAmbient");
+    glUniform4f(ambientUniform, self.materialDefault.ambient.r, self.materialDefault.ambient.g, self.materialDefault.ambient.b, 1.0f);
+    
+    GLint specularUniform = glGetUniformLocation(_program, "matSpecular");
+    glUniform4f(specularUniform, self.materialDefault.specular.r, self.materialDefault.specular.g, self.materialDefault.specular.b, 1.0f);
+    
+    GLint shininessUniform = glGetUniformLocation(_program, "matShininess");
+    glUniform1f(shininessUniform, self.materialDefault.shininess);
+    
+    GLint baseImageLoc = glGetUniformLocation(_program, "TextureSampler");
+    glUniform1i(baseImageLoc, 0); //Texture unit 0 is for base images.
     
     
-    GLint diffuseUniform = glGetUniformLocation(_program, "Diffuse");
-    GLKVector4 bob = GLKVector4Make(self.materialDefault.diffuse.r,self.materialDefault.diffuse.g,self.materialDefault.diffuse.b,1.0);
-    //printf("\n %f \n",self.materialDefault.diffuse.r);
-    glUniform4f(diffuseUniform, bob.r, bob.g, bob.b, 1.0f);
-    
+    GLint detailImageLoc = glGetUniformLocation(_program, "DetailSampler");
+    glUniform1i(detailImageLoc, 2); //Texture unit 0 is for base images.
     
     //texture
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(self.materialDefault.texture.target, self.materialDefault.texture.name);
+    
+    
+    if (self.materialDefault.textureDetail != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glBindTexture(self.materialDefault.textureDetail.target, self.materialDefault.textureDetail.name);
+    }
+    
+    
+    
     //glBindTexture(self.texture.target, self.texture.name);
     /*__block Material *m;
     [self.materials enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
@@ -389,7 +418,7 @@
     }];*/
     
 
-    glBindTexture(self.materialDefault.texture.target, self.materialDefault.texture.name);
+
     
     // Draw!
     glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );

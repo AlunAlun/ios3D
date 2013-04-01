@@ -7,9 +7,12 @@
 //
 
 #import <GLKit/GLKit.h>
+#import "ControlPanel.h"
 
 
 
 @interface GTI3DViewController : GLKViewController <UIAlertViewDelegate>
+@property (weak, nonatomic) IBOutlet UILabel *performanceLabel;
 
+@property (weak, nonatomic) IBOutlet ControlPanel *controlPanel;
 @end

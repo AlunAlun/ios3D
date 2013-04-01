@@ -9,16 +9,44 @@
             <objects>
                 <glkViewController autoresizesArchivedViewToFullSize="NO" preferredFramesPerSecond="30" id="Pio-Ab-FZj" customClass="GTI3DViewController" sceneMemberID="viewController">
                     <glkView key="view" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="cGO-FM-tVP">
-                        <rect key="frame" x="0.0" y="20" width="768" height="1004"/>
+                        <rect key="frame" x="0.0" y="20" width="1024" height="748"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pT1-ph-jpV">
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="kRU-fb-6K1"/>
+                                    <constraint firstAttribute="width" constant="184" id="y4a-fh-ZEv"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PmR-Xl-Fkg" customClass="ControlPanel">
+                                <color key="backgroundColor" red="0.2666666667" green="0.2666666667" blue="0.2666666667" alpha="1" colorSpace="calibratedRGB"/>
+                            </view>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="PmR-Xl-Fkg" firstAttribute="bottom" secondItem="cGO-FM-tVP" secondAttribute="bottom" type="default" id="AKV-bO-sTk"/>
+                            <constraint firstItem="PmR-Xl-Fkg" firstAttribute="top" secondItem="cGO-FM-tVP" secondAttribute="top" type="default" id="Ifi-Yh-Nb2"/>
+                            <constraint firstItem="pT1-ph-jpV" firstAttribute="top" secondItem="cGO-FM-tVP" secondAttribute="top" constant="2" id="bZT-Zw-rno"/>
+                            <constraint firstItem="pT1-ph-jpV" firstAttribute="leading" secondItem="cGO-FM-tVP" secondAttribute="leading" constant="4" id="beA-e9-x8p"/>
+                            <constraint firstItem="PmR-Xl-Fkg" firstAttribute="trailing" secondItem="cGO-FM-tVP" secondAttribute="trailing" type="default" id="gN4-gG-fmV"/>
+                            <constraint firstItem="PmR-Xl-Fkg" firstAttribute="leading" secondItem="cGO-FM-tVP" secondAttribute="leading" constant="724" id="hjR-BN-2Y9"/>
+                        </constraints>
+                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                         <connections>
                             <outlet property="delegate" destination="Pio-Ab-FZj" id="4hy-73-bRx"/>
                         </connections>
                     </glkView>
+                    <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
+                    <connections>
+                        <outlet property="controlPanel" destination="PmR-Xl-Fkg" id="jRq-sJ-hZm"/>
+                        <outlet property="performanceLabel" destination="pT1-ph-jpV" id="BQE-ur-SNH"/>
+                    </connections>
                 </glkViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fO2-9U-3Sh" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-159" y="-238"/>
+            <point key="canvasLocation" x="-157" y="-238"/>
         </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
