@@ -6,8 +6,6 @@
 //  Copyright (c) 2013 GTI. All rights reserved.
 //
 
-#define VERTEX_SHADER @"vertex"
-#define FRAGMENT_SHADER @"fragment"
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
 #define ROTATETOUCHSENSITIVITY 0.005
 #define PANTOUCHSENSITIVITY 0.1
@@ -38,9 +36,10 @@ typedef struct
     
 
     
-    GLuint _program;
-    Uniform *_uniformArray;
-    GLint _uniformArraySize;
+    GLuint _shaderDetailTexture;
+    GLuint _shaderTexture;
+    GLuint _shaderPhong;
+
    
     GLuint _verticesVBO;
     GLuint _indicesVBO;
@@ -117,11 +116,11 @@ typedef struct
     return shaderHandle;
 }
 
--(void)createProgram
+-(GLuint)createProgramWithVertex:(NSString*)vertex Fragment:(NSString*)fragment
 {
     // Compile both shaders
-    GLuint vertexShader = [self compileShader:VERTEX_SHADER withType:GL_VERTEX_SHADER];
-    GLuint fragmentShader = [self compileShader:FRAGMENT_SHADER withType:GL_FRAGMENT_SHADER];
+    GLuint vertexShader = [self compileShader:vertex withType:GL_VERTEX_SHADER];
+    GLuint fragmentShader = [self compileShader:fragment withType:GL_FRAGMENT_SHADER];
     
     // Create the program in openGL, attach the shaders and link them
     GLuint programHandle = glCreateProgram();
@@ -146,35 +145,8 @@ typedef struct
         exit(1);
     }
     
-    _program = programHandle;
-}
-
--(void)getUniforms
-{
-    GLint maxUniformLength;
-    GLint numberOfUniforms;
-    char *uniformName;
-    
-    // Get the number of uniforms and the max length of their names
-    glGetProgramiv(_program, GL_ACTIVE_UNIFORMS, &numberOfUniforms);
-    glGetProgramiv(_program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLength);
-    
-    _uniformArray = malloc(numberOfUniforms * sizeof(Uniform));
-    _uniformArraySize = numberOfUniforms;
-    
-    for(int i = 0; i < numberOfUniforms; i++)
-    {
-        GLint size;
-        GLenum type;
-        GLint location;
-        // Get the Uniform Info
-        uniformName = malloc(sizeof(char) * maxUniformLength);
-        glGetActiveUniform(_program, i, maxUniformLength, NULL, &size, &type, uniformName);
-        _uniformArray[i].Name = uniformName;
-        // Get the uniform location
-        location = glGetUniformLocation(_program, uniformName);
-        _uniformArray[i].Location = location;
-    }
+    //_program = programHandle;
+    return programHandle;
 }
 
 - (void)viewDidLoad
@@ -221,7 +193,7 @@ typedef struct
     // Change the format of the depth renderbuffer
     // This value is None by default
     view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
-    //view.drawableMultisample = GLKViewDrawableMultisample4X;
+    view.drawableMultisample = GLKViewDrawableMultisample4X;
     
     // Enable face culling and depth test
     glEnable( GL_DEPTH_TEST );
@@ -234,10 +206,13 @@ typedef struct
     _screenHeight = height;
     glViewport(0, 0, width, height);
     
+    //compile shaders
+    _shaderDetailTexture = [self createProgramWithVertex:@"ShaderDetailTextureVertex" Fragment:@"ShaderDetailTextureFragment"];
+    _shaderPhong = [self createProgramWithVertex:@"ShaderPhongVertex" Fragment:@"ShaderPhongFragment"];
     
-    [self createProgram];
-    [self getUniforms];
     
+
+    //setup matrices
     _modelViewMatrix = GLKMatrix4MakeLookAt(0.0f, 150.0f, 200.0f, 0.0f, 100.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), (float)width/(float)height, 100.0f, 1000.0f);
     
@@ -263,7 +238,7 @@ typedef struct
  
     //cargar la unica escena que hemos creado hasta ahora
     NSError* error = nil;
-    self.currentScene = [[Scene alloc] initWithProgram:_program error:&error];
+    self.currentScene = [[Scene alloc] initWithProgram:_shaderDetailTexture error:&error];
 
     if (!self.currentScene)
     {
@@ -283,7 +258,8 @@ typedef struct
         [AssetsSingleton sharedAssets].scene = (Scene*)self.currentScene;
         
         // panel stuff
-        _isPanel = YES;
+        _isPanel = NO;
+
         [self.controlPanel drawTree];
     }
 
@@ -376,7 +352,9 @@ typedef struct
     [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
         
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
-    self.performanceLabel.text = [NSString stringWithFormat:@"Frame duration: %f ms", frameDuration * 1000.0];
+    self.performanceLabel.text = [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
+                                  frameDuration * 1000.0,
+                                  [AssetsSingleton sharedAssets].totalTris];
     
 }
 
@@ -406,15 +384,20 @@ typedef struct
     glDeleteBuffers(1, &_indicesVBO);
     glDeleteVertexArraysOES(1, &_VAO);
     
-    if (_program) {
-        glDeleteProgram(_program);
-        _program = 0;
+    if (_shaderDetailTexture) {
+        glDeleteProgram(_shaderDetailTexture);
+        _shaderDetailTexture = 0;
     }
     
-    for (int i = 0; i < _uniformArraySize; i++) {
-        free(_uniformArray[i].Name);
+    if (_shaderTexture) {
+        glDeleteProgram(_shaderTexture);
+        _shaderTexture = 0;
     }
-    free(_uniformArray);
+    
+    if (_shaderPhong) {
+        glDeleteProgram(_shaderPhong);
+        _shaderPhong = 0;
+    }
     
 
 }

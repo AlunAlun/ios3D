@@ -16,6 +16,7 @@
 @property (nonatomic, strong) Scene *scene;
 @property (nonatomic, strong) NSMutableArray *textures;
 @property (nonatomic, strong) NSMutableArray *materials;
+@property (assign) int totalTris;
 
 + (AssetsSingleton *)sharedAssets;   // class method to return the singleton object
 

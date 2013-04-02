@@ -9,7 +9,7 @@
 #import "AssetsSingleton.h"
 
 @implementation AssetsSingleton
-@synthesize scene, materials, textures;
+@synthesize scene, materials, textures, totalTris;
 
 static AssetsSingleton *sharedAssetsSingleton = nil;    // static instance variable
 
@@ -25,6 +25,7 @@ static AssetsSingleton *sharedAssetsSingleton = nil;    // static instance varia
         // your custom initialization
         self.materials = [[NSMutableArray alloc] init];
         self.textures = [[NSMutableArray alloc] init];
+        totalTris = 0;
     }
     return self;
 }

@@ -34,29 +34,32 @@
         WaveFrontObject *avatarOBJ = [self addChildOBJ:@"avatar_girl.obj" error:error];
         if (!avatarOBJ ) return nil;
         avatarOBJ.name = @"Avatar";
-         
-        /*
+        Material *avatarMat = [[Material alloc] init];
+        avatarOBJ.materialDefault = avatarMat;
+        
         WaveFrontObject *skirtOBJ = [self addChildOBJ:@"skirt.obj" error:error];
         if (!skirtOBJ ) return nil;
         skirtOBJ.name = @"Skirt";
         Material *m = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg"];
         skirtOBJ.materialDefault = m;
         [m loadDetailTexture:@"detail_jeans" ofType:@"png"];
-        /*
-        currOBJ = [self addChildOBJ:@"tshirt.obj" error:error];
-        if (!currOBJ ) return nil;
+        
+        
+        WaveFrontObject *shirtOBJ = [self addChildOBJ:@"tshirt.obj" error:error];
+        if (!shirtOBJ ) return nil;
+        shirtOBJ.name = @"Shirt";
         m = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg"];
-        currOBJ.materialDefault = m;
-        */
-        /*
+        shirtOBJ.materialDefault = m;
+        
+        
         WaveFrontObject *floorOBJ = [self addChildOBJ:@"floor.obj" error:error];
         if (!floorOBJ ) return nil;
         floorOBJ.name = @"Floor";
-        m = [[Material alloc] init];
-        m.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
-        [m loadDetailTexture:@"white" ofType:@"png"];
-        floorOBJ.materialDefault = m;
-         */
+        Material *floorMat = [[Material alloc] init];
+        floorMat.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+        [floorMat loadDetailTexture:@"white" ofType:@"png"];
+        floorOBJ.materialDefault = floorMat;
+         
        
         /*SimpleCube *cube = [[SimpleCube alloc] initWithProgram:program];
         cube.name = @"cube";

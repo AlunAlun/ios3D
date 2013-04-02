@@ -7,6 +7,7 @@
 //
 
 #import "WaveFrontObject.h"
+#import "AssetsSingleton.h"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
 
@@ -36,6 +37,9 @@
 	
 	if ((self = [super init]))
 	{
+        NSLog(@"Loading obj: %@",path);
+        
+        
 		_program = program;
         
         self.materialDefault = [[Material alloc] init];
@@ -99,12 +103,6 @@
                         if (![vertexCombinations containsObject:oneFace])
                             [vertexCombinations addObject:oneFace];
                                        
-                        /* // ********* DECOMMENT THIS IF WE WANT TO CALCULATE NORMALS OURSELVES *******
-                        NSArray *faceParts = [oneFace componentsSeparatedByString:@"/"];
-                        NSString *faceKey = [NSString stringWithFormat:@"%@/%@", [faceParts objectAtIndex:0], ([faceParts count] > 1) ? [faceParts objectAtIndex:1] : 0];
-                        if (![vertexCombinations containsObject:faceKey])
-                            [vertexCombinations addObject:faceKey];
-                        */
                          
                     }
                 }
@@ -136,9 +134,9 @@
         NSLog(@"Texture Coords: %i",textureCoordsCount);
         NSLog(@"Faces: %i",faceCount);
         NSLog(@"Index (should be faces*3): %i",[indexArray count]);
-        NSLog(@"materialcount: %i",[self.materials count]);
-        for(id key in self.materials)
-            NSLog(@"Material: key=%@", key);
+        NSLog(@"Unique Verts: %i",[vertexCombinations count]);
+        
+        [AssetsSingleton sharedAssets].totalTris+=faceCount;
         
         
         //handle case where there is no mat file
@@ -247,11 +245,12 @@
             dataBuffer[buffPos] = RawVertexData[currVertexPos*3];
             dataBuffer[buffPos+1] = RawVertexData[currVertexPos*3+1];
             dataBuffer[buffPos+2] = RawVertexData[currVertexPos*3+2];
-            //add three normal coords
             
+            //add three normal coords
             dataBuffer[buffPos+3] = RawNormalData[currNormalPos*3];
             dataBuffer[buffPos+4] = RawNormalData[currNormalPos*3+1];;
             dataBuffer[buffPos+5] = RawNormalData[currNormalPos*3+2];;
+
             //add three text coords
             dataBuffer[buffPos+6] = RawTextureData[currTextPos*2];
             dataBuffer[buffPos+7] = (1-RawTextureData[currTextPos*2+1]);
@@ -392,9 +391,11 @@
     GLint baseImageLoc = glGetUniformLocation(_program, "TextureSampler");
     glUniform1i(baseImageLoc, 0); //Texture unit 0 is for base images.
     
-    
+
     GLint detailImageLoc = glGetUniformLocation(_program, "DetailSampler");
     glUniform1i(detailImageLoc, 2); //Texture unit 0 is for base images.
+    
+    GLint detailBool = glGetUniformLocation(_program, "UseDetail");
     
     //texture
     glActiveTexture(GL_TEXTURE0 + 0);
@@ -407,8 +408,10 @@
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glBindTexture(self.materialDefault.textureDetail.target, self.materialDefault.textureDetail.name);
+        glUniform1i(detailBool,1);
     }
-    
+    else
+        glUniform1i(detailBool,0);
     
     
     //glBindTexture(self.texture.target, self.texture.name);
