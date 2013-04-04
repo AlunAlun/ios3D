@@ -8,6 +8,11 @@
 
 #import "WaveFrontObject.h"
 #import "AssetsSingleton.h"
+#import <stdio.h>
+#include <map>
+#include <string>
+#include <vector>
+
 
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
 
@@ -32,14 +37,44 @@
 @synthesize materials;
 @synthesize groups, dataBufferArray, indexBufferArray;
 
+
+NSString *readLineAsNSString(FILE *file)
+{
+    char buffer[4096];
+    
+    // tune this capacity to your liking -- larger buffer sizes will be faster, but
+    // use more memory
+    NSMutableString *result = [NSMutableString stringWithCapacity:256];
+    
+    // Read up to 4095 non-newline characters, then read and discard the newline
+    int charsRead;
+    do
+    {
+        //char pos = fscanf(file, "%4095[^\n]%n%*c", buffer, &charsRead);
+        if(fscanf(file, "%[^\n]\n", buffer, &charsRead) == 1)
+        {
+            [result appendFormat:@"%s", buffer];
+
+        }
+        else
+            break;
+    } while(charsRead == 4095);
+    
+    return result;
+}
+
+
+
 - (id)initWithPath:(NSString *)path program:(GLuint)program error:(NSError **)error;
 {
 	
 	if ((self = [super init]))
 	{
+
         NSLog(@"Loading obj: %@",path);
+        NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
         
-        
+
 		_program = program;
         
         self.materialDefault = [[Material alloc] init];
@@ -57,25 +92,95 @@
 		
 		NSArray *lines = [objData componentsSeparatedByString:@"\n"];
 		BOOL firstTextureCoords = YES;
-		NSMutableArray *vertexCombinations = [[NSMutableArray alloc] init];
+        std::map <std::string, int> mapVertexCombinations;
+        std::vector<std::string> vecVertexCombinations;
+        int mapCounter= 0;
+        
+        
         NSMutableArray *indexArray = [[NSMutableArray alloc] init];
-  
-		for (NSString * line in lines)
-		{
-			if ([line hasPrefix:@"v "])
+        std::vector<std::string> vecIndexArray;
+        
+        NSTimeInterval newStart = [NSDate timeIntervalSinceReferenceDate];
+        FILE *file = fopen([path cStringUsingEncoding:NSUTF8StringEncoding], "r");
+        while(!feof(file))
+        {
+            NSString *line = readLineAsNSString(file);
+            // do stuff with line; line is autoreleased, so you should NOT release it (unless you also retain it beforehand)
+            if ([line hasPrefix:@"v "])
 				vertexCount++;
+
             else if ([line hasPrefix:@"vn "])
 				normalCount++;
 			else if ([line hasPrefix:@"vt "])
 			{
 				textureCoordsCount++;
-				if (firstTextureCoords) // count to see how many texture coords there are
-				{
+				if (firstTextureCoords) // count to see how many texture coords there
+                {
 					firstTextureCoords = NO;
 					NSString *texLine = [line substringFromIndex:3];
 					NSArray *texParts = [texLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 					valuesPerCoord = [texParts count];
 				}
+			}
+            else if ([line hasPrefix:@"f"])
+			{
+                
+				NSString *faceLine = [line substringFromIndex:2];
+				NSArray *faces = [faceLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                
+                if ([faces count] == 3){ //tris okay no problem
+                    faceCount++;
+                    for (NSString *oneFace in faces)
+                    {
+                        vecIndexArray.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+
+                        std::map<std::string,int>::iterator it = mapVertexCombinations.find([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                        
+                        if (it == mapVertexCombinations.end())
+                        {
+                            mapVertexCombinations[[oneFace cStringUsingEncoding:NSUTF8StringEncoding]] = mapCounter;
+                            vecVertexCombinations.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                        }
+                        mapCounter++;
+                        
+                    }
+
+                }
+                else if ([faces count] == 4) //make two tris from quad
+                {
+                    faceCount+=2;
+                    [indexArray addObject:[faces objectAtIndex:0]]; // 0-1-2 0-2-3
+                    [indexArray addObject:[faces objectAtIndex:1]];
+                    [indexArray addObject:[faces objectAtIndex:2]];
+                    
+                    [indexArray addObject:[faces objectAtIndex:0]];
+                    [indexArray addObject:[faces objectAtIndex:2]];
+                    [indexArray addObject:[faces objectAtIndex:3]];
+                    
+                    vecIndexArray.push_back([[faces objectAtIndex:0] cStringUsingEncoding:NSUTF8StringEncoding]);
+                    vecIndexArray.push_back([[faces objectAtIndex:1] cStringUsingEncoding:NSUTF8StringEncoding]);
+                    vecIndexArray.push_back([[faces objectAtIndex:2] cStringUsingEncoding:NSUTF8StringEncoding]);
+                    
+                    vecIndexArray.push_back([[faces objectAtIndex:0] cStringUsingEncoding:NSUTF8StringEncoding]);
+                    vecIndexArray.push_back([[faces objectAtIndex:2] cStringUsingEncoding:NSUTF8StringEncoding]);
+                    vecIndexArray.push_back([[faces objectAtIndex:3] cStringUsingEncoding:NSUTF8StringEncoding]);
+                    
+                    for (NSString *oneFace in faces)
+                    {
+
+                        std::map<std::string,int>::iterator it = mapVertexCombinations.find([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                        
+                        if (it == mapVertexCombinations.end())
+                        {
+                            mapVertexCombinations[[oneFace cStringUsingEncoding:NSUTF8StringEncoding]] = mapCounter;
+                            mapCounter++;
+                            vecVertexCombinations.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                        }
+                        
+                        
+                    }
+                }
+                else quadTriError = 1;
 			}
 			else if ([line hasPrefix:@"m"])
 			{
@@ -89,41 +194,17 @@
 			}
 			else if ([line hasPrefix:@"g"])
 				groupCount++;
-			else if ([line hasPrefix:@"f"])
-			{
-
-				NSString *faceLine = [line substringFromIndex:2];
-				NSArray *faces = [faceLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                
-                if ([faces count] == 3){ //tris okay no problem
-                    faceCount++;
-                    for (NSString *oneFace in faces)
-                    {
-                        [indexArray addObject:oneFace]; // add all three
-                        if (![vertexCombinations containsObject:oneFace])
-                            [vertexCombinations addObject:oneFace];
-                                       
-                         
-                    }
-                }
-                else if ([faces count] == 4) //make two tris from quad
-                {
-                    faceCount+=2;
-                    [indexArray addObject:[faces objectAtIndex:0]]; // 0-1-2 0-2-3
-                    [indexArray addObject:[faces objectAtIndex:1]];
-                    [indexArray addObject:[faces objectAtIndex:2]];
-                    
-                    [indexArray addObject:[faces objectAtIndex:0]];
-                    [indexArray addObject:[faces objectAtIndex:2]];
-                    [indexArray addObject:[faces objectAtIndex:3]];
-                    for (NSString *oneFace in faces)
-                        if (![vertexCombinations containsObject:oneFace])
-                            [vertexCombinations addObject:oneFace];
-                }
-                else quadTriError = 1;
-			}
 			
-		}
+            
+        }
+        fclose(file);
+        
+        
+        NSTimeInterval newEnd = [NSDate timeIntervalSinceReferenceDate];
+        
+        NSLog(@"just file read %f", newEnd-newStart);
+        
+        NSTimeInterval readTime = [NSDate timeIntervalSinceReferenceDate];
         
         //**************************************************
         //***** Check to make sure file is valid and fix bugs
@@ -133,8 +214,8 @@
         NSLog(@"Norm Coords: %i",normalCount);
         NSLog(@"Texture Coords: %i",textureCoordsCount);
         NSLog(@"Faces: %i",faceCount);
-        NSLog(@"Index (should be faces*3): %i",[indexArray count]);
-        NSLog(@"Unique Verts: %i",[vertexCombinations count]);
+        NSLog(@"Index (should be faces*3): %li",vecIndexArray.size());
+        NSLog(@"Unique Verts: %li",mapVertexCombinations.size());
         
         [AssetsSingleton sharedAssets].totalTris+=faceCount;
         
@@ -154,9 +235,9 @@
             *error = [NSError errorWithDomain:@"OBJ" code:001 userInfo:details];
             return nil;
         }
-        else if (faceCount*3!=[indexArray count])
+        else if (faceCount*3!=vecIndexArray.size())
         {
-            [details setValue:@"App doesn't support OBJ file which contains both quads and tris" forKey:NSLocalizedDescriptionKey];
+            [details setValue:@"Error in Face Indices. Does .obj file contain both quads and tris?" forKey:NSLocalizedDescriptionKey];
             *error = [NSError errorWithDomain:@"OBJ" code:001 userInfo:details];
             return nil;
         }
@@ -221,23 +302,32 @@
                 RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:0] floatValue];
                 RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:1] floatValue];
             }
+            
 
             
         }
-
+         
         
         //**************************************************
         //***** Fill arrays with data from file
         //**************************************************
     
-        GLuint dataBufferSize = [vertexCombinations count];
+        GLuint dataBufferSize = mapVertexCombinations.size();
         GLfloat dataBuffer[dataBufferSize*8];
         int buffPos = 0;
-        for (int i = 0; i < [vertexCombinations count]; i++)
+        for (int i = 0; i<vecVertexCombinations.size(); i++)
         {
-            NSString *pair = [vertexCombinations objectAtIndex:i];
+          
+            const char *key = "bob";
+            std::string currFace = vecVertexCombinations[i];
+            std::map<std::string,int>::iterator it = mapVertexCombinations.find(currFace);
+            
+            if (it != mapVertexCombinations.end())
+                key = it->first.c_str();
+
+            NSString *pair = [NSString stringWithCString:key encoding:NSUTF8StringEncoding];
             NSArray *pairParts = [pair componentsSeparatedByString:@"/"];
-            int currVertexPos = [[pairParts objectAtIndex:0] intValue]-1;
+            int currVertexPos = [[pairParts objectAtIndex:0] intValue]-1; // we substract one because file string is not 0-based
             int currTextPos = [[pairParts objectAtIndex:1] intValue]-1;
             int currNormalPos = [[pairParts objectAtIndex:2] intValue]-1;
             
@@ -245,20 +335,24 @@
             dataBuffer[buffPos] = RawVertexData[currVertexPos*3];
             dataBuffer[buffPos+1] = RawVertexData[currVertexPos*3+1];
             dataBuffer[buffPos+2] = RawVertexData[currVertexPos*3+2];
+
             
             //add three normal coords
             dataBuffer[buffPos+3] = RawNormalData[currNormalPos*3];
-            dataBuffer[buffPos+4] = RawNormalData[currNormalPos*3+1];;
-            dataBuffer[buffPos+5] = RawNormalData[currNormalPos*3+2];;
+            dataBuffer[buffPos+4] = RawNormalData[currNormalPos*3+1];
+            dataBuffer[buffPos+5] = RawNormalData[currNormalPos*3+2];
+
 
             //add three text coords
             dataBuffer[buffPos+6] = RawTextureData[currTextPos*2];
             dataBuffer[buffPos+7] = (1-RawTextureData[currTextPos*2+1]);
+
             
             buffPos+=8;
         }
         
-   
+
+        
         //**************************************************
         //***** Create new index buffer by searching for i/j/k string
         //**************************************************
@@ -266,30 +360,36 @@
         GLuint indexBuffer[faceCount*3];
         _indexBufferSize = faceCount*3;
 
-        NSTimeInterval bob = [NSDate timeIntervalSinceReferenceDate];
+        NSTimeInterval indexStartTime = [NSDate timeIntervalSinceReferenceDate];
 
         for (int i = 0; i < faceCount*3; i+=3)
         {
 
-            indexBuffer[i] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i]];
-            indexBuffer[i+1] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+1]];
-            indexBuffer[i+2] = [vertexCombinations indexOfObject:[indexArray objectAtIndex:i+2]];
+            std::map<std::string,int>::iterator it = mapVertexCombinations.find(vecIndexArray[i]);
+            if (it != mapVertexCombinations.end())
+                indexBuffer[i] = it->second;
 
+            it = mapVertexCombinations.find(vecIndexArray[i+1]);
+            if (it != mapVertexCombinations.end())
+                indexBuffer[i+1] = it->second;
+
+            it = mapVertexCombinations.find(vecIndexArray[i+2]);
+            if (it != mapVertexCombinations.end())
+                indexBuffer[i+2] = it->second;
         }
-        NSTimeInterval bab = [NSDate timeIntervalSinceReferenceDate] - bob;
-        NSLog(@"Time to create index buffers %f", bab);
-        
-        //**************************************************
-        //***** Expose buffers for further serialization
-        //**************************************************
-        self.dataBufferArray = [[NSMutableArray alloc] initWithCapacity:dataBufferSize*8];
-        for (int i = 0; i < dataBufferSize*8; i++)
-            [self.dataBufferArray addObject:[[NSNumber alloc] initWithFloat:dataBuffer[i]]];
-        
-        self.indexBufferArray = [[NSMutableArray alloc] initWithCapacity:faceCount*3];
-        for (int i = 0; i < dataBufferSize*8; i++)
-            [self.indexBufferArray addObject:[[NSNumber alloc] initWithFloat:indexBuffer[i]]];
+    
 
+
+        NSTimeInterval readIntervalTime = readTime - startTime;
+        NSTimeInterval fillIntervalTime = indexStartTime - readTime;
+        NSTimeInterval indexIntervalTime = [NSDate timeIntervalSinceReferenceDate] - indexStartTime;
+        NSTimeInterval allTime = [NSDate timeIntervalSinceReferenceDate] - startTime;
+        
+        NSLog(@"Reading time: %f", readIntervalTime);
+        NSLog(@"Filling time: %f", fillIntervalTime);
+        NSLog(@"Indexing time: %f", indexIntervalTime);
+        NSLog(@"All time: %f", allTime);
+        
         
 //TODO implement situation where there are no normals
         
@@ -329,9 +429,12 @@
         glEnableVertexAttribArray( attribute );
         glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*3/8 ) );
         
-        attribute = glGetAttribLocation(_program, "VertexTexCoord0");
-        glEnableVertexAttribArray( attribute );
-        glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
+        //check we have a texture coord in our shader
+        if((attribute = glGetAttribLocation(_program, "VertexTexCoord0")) != -1)
+        {
+            glEnableVertexAttribArray( attribute );
+            glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
+        }
         
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
         
@@ -345,6 +448,7 @@
 - (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix
 {
     [super renderWithMV:modelViewMatrix P:projectionMatrix];
+
     
     //apply all transformations
     modelViewMatrix = GLKMatrix4Multiply(modelViewMatrix, [self modelMatrix:YES]);
@@ -373,27 +477,28 @@
     GLKVector3 l = GLKVector3Make(100.0f , 300.0f, 300.0f);
     glUniform3f(matL, l.x, l.y, l.z);
     
-    GLint lightIntensityUniform = glGetUniformLocation(_program, "LightIntensity");
-    glUniform1f(lightIntensityUniform, 1.3);
+    GLint u;
     
-    GLint diffuseUniform = glGetUniformLocation(_program, "matDiffuse");
-    glUniform4f(diffuseUniform, self.materialDefault.diffuse.r, self.materialDefault.diffuse.g, self.materialDefault.diffuse.b, 1.0f);
+    u = glGetUniformLocation(_program, "LightIntensity");
+    if(u!=-1)glUniform1f(u, 1.3);
     
-    GLint ambientUniform = glGetUniformLocation(_program, "matAmbient");
-    glUniform4f(ambientUniform, self.materialDefault.ambient.r, self.materialDefault.ambient.g, self.materialDefault.ambient.b, 1.0f);
+    u = glGetUniformLocation(_program, "matDiffuse");
+    if(u!=-1)glUniform4f(u, self.materialDefault.diffuse.r, self.materialDefault.diffuse.g, self.materialDefault.diffuse.b, 1.0f);
     
-    GLint specularUniform = glGetUniformLocation(_program, "matSpecular");
-    glUniform4f(specularUniform, self.materialDefault.specular.r, self.materialDefault.specular.g, self.materialDefault.specular.b, 1.0f);
+    u = glGetUniformLocation(_program, "matAmbient");
+    if(u!=-1)glUniform4f(u, self.materialDefault.ambient.r, self.materialDefault.ambient.g, self.materialDefault.ambient.b, 1.0f);
     
-    GLint shininessUniform = glGetUniformLocation(_program, "matShininess");
-    glUniform1f(shininessUniform, self.materialDefault.shininess);
+    u = glGetUniformLocation(_program, "matSpecular");
+    if(u!=-1)glUniform4f(u, self.materialDefault.specular.r, self.materialDefault.specular.g, self.materialDefault.specular.b, 1.0f);
     
-    GLint baseImageLoc = glGetUniformLocation(_program, "TextureSampler");
-    glUniform1i(baseImageLoc, 0); //Texture unit 0 is for base images.
+    u = glGetUniformLocation(_program, "matShininess");
+    if(u!=-1)glUniform1f(u, self.materialDefault.shininess);
     
-
-    GLint detailImageLoc = glGetUniformLocation(_program, "DetailSampler");
-    glUniform1i(detailImageLoc, 2); //Texture unit 0 is for base images.
+    u = glGetUniformLocation(_program, "TextureSampler");
+    if(u!=-1)glUniform1i(u, 0); //Texture unit 0 is for base images.
+    		
+    u = glGetUniformLocation(_program, "DetailSampler");
+    if(u!=-1)glUniform1i(u, 2); //Texture unit 2 is for detail images.
     
     GLint detailBool = glGetUniformLocation(_program, "UseDetail");
     

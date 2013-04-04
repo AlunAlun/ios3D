@@ -11,9 +11,11 @@
 
 @interface Material : NSObject
 
+
 @property(strong) GLKTextureInfo *texture;
 @property(strong) GLKTextureInfo *textureDetail;
 @property(strong) NSString *name;
+@property GLuint program;
 @property GLKVector4 diffuse;
 @property GLKVector4 ambient;
 @property GLKVector4 specular;

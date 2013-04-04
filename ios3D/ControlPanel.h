@@ -7,11 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Node.h"
 
 @interface ControlPanel : UIView
 
 @property (nonatomic, weak) IBOutlet UIView *sceneTree;
 @property (nonatomic, strong) NSMutableArray *nodeNames;
+@property (assign) int currentNode;
 
 -(void)drawTree;
 -(void)addNodeName:(NSString *)newName;

@@ -17,6 +17,7 @@
 #import "SimpleCube.h"
 #import "ControlPanel.h"
 #import "AssetsSingleton.h"
+#import "ShaderLoader.h"
 
 
 typedef struct
@@ -153,37 +154,17 @@ typedef struct
 {
     [super viewDidLoad];
     
-    CGRect mainScreenFrame = [[UIScreen mainScreen] applicationFrame];
-    
-    // Set up the image view
-    UIImage *img = [UIImage imageWithContentsOfFile: [[NSBundle mainBundle] pathForResource:@"detail_jeans" ofType:@"png"]];
-    UIImageView *_imageView = [[UIImageView alloc] initWithFrame:mainScreenFrame];
-    _imageView.image = img;
-    
-    
-    // Set up the spinner
-    UIActivityIndicatorView *_spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    [_spinner setCenter:CGPointMake(mainScreenFrame.size.height/3.0f*1.85f, mainScreenFrame.size.width/10.0f*7.55f)];
-    [_imageView addSubview:_spinner];
-    [_spinner startAnimating];
-    
-    // Show the loading image
-    //[self.view addSubview:_imageView];
-    
-    
+   
 	// Do any additional setup after loading the view, typically from a nib.
     // Create context
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    //self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    self.context = [AssetsSingleton sharedAssets].context;
     if (!self.context) {
         NSLog(@"Failed to create ES context");
         exit(1);
     }
     
-    if (![EAGLContext setCurrentContext:self.context])
-    {
-        NSLog(@"Failed to set current OpenGL context");
-        exit(1);
-    }
+
     
     // Initialize view
     GLKView *view = (GLKView *)self.view;
@@ -207,8 +188,9 @@ typedef struct
     glViewport(0, 0, width, height);
     
     //compile shaders
-    _shaderDetailTexture = [self createProgramWithVertex:@"ShaderDetailTextureVertex" Fragment:@"ShaderDetailTextureFragment"];
-    _shaderPhong = [self createProgramWithVertex:@"ShaderPhongVertex" Fragment:@"ShaderPhongFragment"];
+    //ShaderLoader *loader = [[ShaderLoader alloc] init];
+    //_shaderDetailTexture = [loader createProgramWithVertex:@"ShaderDetailTextureVertex" Fragment:@"ShaderDetailTextureFragment"];
+    //_shaderPhong = [loader createProgramWithVertex:@"ShaderPhongVertex" Fragment:@"ShaderPhongFragment"];
     
     
 
@@ -238,8 +220,10 @@ typedef struct
  
     //cargar la unica escena que hemos creado hasta ahora
     NSError* error = nil;
-    self.currentScene = [[Scene alloc] initWithProgram:_shaderDetailTexture error:&error];
+    //self.currentScene = [[Scene alloc] initWithProgram:_shaderDetailTexture error:&error];
 
+    self.currentScene = [AssetsSingleton sharedAssets].scene;
+    
     if (!self.currentScene)
     {
         NSLog(@"%@", [error localizedDescription]);
@@ -248,7 +232,7 @@ typedef struct
                               initWithTitle: @"D'oh!"
                               message: [error localizedDescription]
                               delegate: nil
-                              cancelButtonTitle:@"Bugger"
+                              cancelButtonTitle:@"Scene not initialised"
                               otherButtonTitles:nil];
         [alert show];
 
@@ -260,7 +244,7 @@ typedef struct
         // panel stuff
         _isPanel = NO;
 
-        [self.controlPanel drawTree];
+        
     }
 
 
@@ -276,7 +260,7 @@ typedef struct
 
     if (!_isPanel)
     {
-        
+        [self.controlPanel drawTree];
         _isPanel = YES;
         [UIView beginAnimations:nil context:nil];
         [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
@@ -329,7 +313,7 @@ typedef struct
     UITouch *touch = [[event allTouches] anyObject];
     CGPoint location = [touch locationInView:touch.view];
     //_modelViewMatrix = GLKMatrix4Translate(_modelViewMatrix, 0, (location.y-_yTouchLoc)*PANTOUCHSENSITIVITY, 0);
-    GLKMatrix4 tm = GLKMatrix4Translate(GLKMatrix4Identity, 0, (location.y-_yTouchLoc)*PANTOUCHSENSITIVITY, 0);
+    GLKMatrix4 tm = GLKMatrix4Translate(GLKMatrix4Identity, 0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0);
     
     _modelViewMatrix = GLKMatrix4Multiply(tm, GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY));
     _xTouchLoc = location.x;

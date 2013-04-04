@@ -13,12 +13,14 @@
 @implementation ControlPanel
 @synthesize sceneTree = _sceneTree;
 @synthesize nodeNames = _nodeNames;
+@synthesize currentNode = _currentNode;
 
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        self.currentNode = 0;
 
     }
     return self;
@@ -32,26 +34,51 @@
 
 -(void)drawTree
 {
-    UILabel *treeTitle = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 10.0, 260, 20)];
+    //**************************************
+    // NODE SELECT
+    //**************************************
+    
+    //title
+    UILabel *treeTitle = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 10.0, 300.0, 20.0)];
     treeTitle.backgroundColor = [UIColor colorWithRed:0.16 green:0.16 blue:0.16 alpha:0.16];
     treeTitle.textColor = [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.0];
     treeTitle.text = @"Nodes";
     [self addSubview:treeTitle];
     
+    //make frame for tree
     UIView *treeView = [[UIView alloc] initWithFrame:CGRectMake(10.0, 35.0, 280.0, 200.0)];
     treeView.backgroundColor = [UIColor colorWithRed:0.16 green:0.16 blue:0.16 alpha:1.0];
     [self addSubview:treeView];
     
+    //add labels for all nodes
     float yIncrement = 10.0;
     for(Node* node in [AssetsSingleton sharedAssets].scene.children)
     {
-        UILabel *newLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, yIncrement, 260, 20)];
+        UILabel *newLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, yIncrement, 260.0, 20.0)];
         yIncrement+=25;
         newLabel.backgroundColor = [UIColor colorWithRed:0.16 green:0.16 blue:0.16 alpha:0.16];
         newLabel.textColor = [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.0];
         newLabel.text = [NSString stringWithFormat:@"- %@", node.name];
+        //newLabel.tag =
         [treeView addSubview:newLabel];
     }
+
+    
+    //**************************************
+    // Materials section
+    //**************************************
+    
+    //title
+    UILabel *materialTitle = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 260.0, 300.0, 20)];
+    materialTitle.backgroundColor = [UIColor colorWithRed:0.16 green:0.16 blue:0.16 alpha:0.16];
+    materialTitle.textColor = [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.0];
+    materialTitle.text = @"Material";
+    [self addSubview:materialTitle];
+    
+    //get material of current node
+    Node *currNodeObject = [[AssetsSingleton sharedAssets].scene.children objectAtIndex:self.currentNode];
+    Material *mat = currNodeObject.materialDefault;
+    
 }
 
 

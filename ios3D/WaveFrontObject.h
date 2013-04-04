@@ -37,7 +37,7 @@
 - (id)initWithPath:(NSString *)path program:(GLuint)program error:(NSError**)error;
 - (Material*)getDefaultMaterial;
 - (Material*)getMaterialCalled:(NSString*)matName;
-- (void)setProgram:(GLuint)program;
+//- (void)setProgram:(GLuint)program;
 
 
 @end

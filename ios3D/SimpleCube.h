@@ -12,6 +12,6 @@
 @interface SimpleCube : Node
 
 - (id)initWithProgram:(GLuint)program;
-- (id)initWithMaterial:(Material *)mat program:(GLuint)program;
+//- (id)initWithMaterial:(Material *)mat program:(GLuint)program;
 
 @end

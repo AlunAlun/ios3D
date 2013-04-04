@@ -13,8 +13,7 @@ attribute mediump vec3 VertexNormal;
 varying mediump vec3 E;
 varying mediump vec3 LD;
 varying mediump vec3 N;
-varying mediump vec3 R;
-varying mediump vec2 FragmentTexCoord0; 
+varying mediump vec3 R; 
  
 void main(void)
 {

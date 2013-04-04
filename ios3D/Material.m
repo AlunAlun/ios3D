@@ -20,6 +20,7 @@
 @synthesize ambient = _ambient;
 @synthesize specular = _specular;
 @synthesize shininess = _shininess;
+@synthesize program = _program;
 
 -(id)init
 {
