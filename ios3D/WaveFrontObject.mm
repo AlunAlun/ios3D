@@ -7,7 +7,8 @@
 //
 
 #import "WaveFrontObject.h"
-#import "AssetsSingleton.h"
+#import "ResourceManager.h"
+
 #import <stdio.h>
 #include <map>
 #include <string>
@@ -65,14 +66,14 @@ NSString *readLineAsNSString(FILE *file)
 
 
 
-- (id)initWithPath:(NSString *)path program:(GLuint)program error:(NSError **)error;
+- (id)initWithPath:(NSString *)path program:(GLuint)program outMesh:(Mesh**)mesh error:(NSError**)error
 {
 	
 	if ((self = [super init]))
 	{
 
         NSLog(@"Loading obj: %@",path);
-        NSTimeInterval startTime = [NSDate timeIntervalSinceReferenceDate];
+
         
 
 		_program = program;
@@ -100,7 +101,7 @@ NSString *readLineAsNSString(FILE *file)
         NSMutableArray *indexArray = [[NSMutableArray alloc] init];
         std::vector<std::string> vecIndexArray;
         
-        NSTimeInterval newStart = [NSDate timeIntervalSinceReferenceDate];
+
         FILE *file = fopen([path cStringUsingEncoding:NSUTF8StringEncoding], "r");
         while(!feof(file))
         {
@@ -199,25 +200,14 @@ NSString *readLineAsNSString(FILE *file)
         }
         fclose(file);
         
-        
-        NSTimeInterval newEnd = [NSDate timeIntervalSinceReferenceDate];
-        
-        NSLog(@"just file read %f", newEnd-newStart);
-        
-        NSTimeInterval readTime = [NSDate timeIntervalSinceReferenceDate];
+
         
         //**************************************************
         //***** Check to make sure file is valid and fix bugs
         //**************************************************
-        //print some info to console
-        NSLog(@"Vert Coords: %i",vertexCount);
-        NSLog(@"Norm Coords: %i",normalCount);
-        NSLog(@"Texture Coords: %i",textureCoordsCount);
-        NSLog(@"Faces: %i",faceCount);
-        NSLog(@"Index (should be faces*3): %li",vecIndexArray.size());
-        NSLog(@"Unique Verts: %li",mapVertexCombinations.size());
+
         
-        [AssetsSingleton sharedAssets].totalTris+=faceCount;
+        [ResourceManager resources].totalTris+=faceCount;
         
         
         //handle case where there is no mat file
@@ -377,18 +367,7 @@ NSString *readLineAsNSString(FILE *file)
             if (it != mapVertexCombinations.end())
                 indexBuffer[i+2] = it->second;
         }
-    
 
-
-        NSTimeInterval readIntervalTime = readTime - startTime;
-        NSTimeInterval fillIntervalTime = indexStartTime - readTime;
-        NSTimeInterval indexIntervalTime = [NSDate timeIntervalSinceReferenceDate] - indexStartTime;
-        NSTimeInterval allTime = [NSDate timeIntervalSinceReferenceDate] - startTime;
-        
-        NSLog(@"Reading time: %f", readIntervalTime);
-        NSLog(@"Filling time: %f", fillIntervalTime);
-        NSLog(@"Indexing time: %f", indexIntervalTime);
-        NSLog(@"All time: %f", allTime);
         
         
 //TODO implement situation where there are no normals
@@ -398,12 +377,13 @@ NSString *readLineAsNSString(FILE *file)
         //***** Fill OpenGL Buffers
         //**************************************************
 
+
         // Make the vertex buffer
         glGenBuffers( 1, &_verticesVBO );
         glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
         glBufferData( GL_ARRAY_BUFFER, sizeof(dataBuffer), dataBuffer, GL_STATIC_DRAW );
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        
+
         // Make the indices buffer
         glGenBuffers( 1, &_indicesVBO );
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
@@ -439,6 +419,7 @@ NSString *readLineAsNSString(FILE *file)
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
         
         glBindVertexArrayOES( 0 );
+         
 
 
     }
@@ -644,5 +625,279 @@ NSString *readLineAsNSString(FILE *file)
     return [self.materials objectForKey:@"default"];
 }
 
+-(Mesh*)test:(GLuint)program{
+    
+
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"avatar_girl" ofType:@"obj"];
+    NSMutableDictionary* details = [NSMutableDictionary dictionary];
+    
+    NSLog(@"Loading test");
+
+
+
+
+    NSString *objData = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    int vertexCount = 0, normalCount = 0, faceCount = 0, textureCoordsCount=0, groupCount = 0, existMatFile = 0, quadTriError = 0;
+    
+
+    
+    NSArray *lines = [objData componentsSeparatedByString:@"\n"];
+    BOOL firstTextureCoords = YES;
+    std::map <std::string, int> mapVertexCombinations;
+    std::vector<std::string> vecVertexCombinations;
+    int mapCounter= 0;
+    
+    
+    NSMutableArray *indexArray = [[NSMutableArray alloc] init];
+    std::vector<std::string> vecIndexArray;
+    
+    NSTimeInterval newStart = [NSDate timeIntervalSinceReferenceDate];
+    FILE *file = fopen([path cStringUsingEncoding:NSUTF8StringEncoding], "r");
+    while(!feof(file))
+    {
+        NSString *line = readLineAsNSString(file);
+        // do stuff with line; line is autoreleased, so you should NOT release it (unless you also retain it beforehand)
+        if ([line hasPrefix:@"v "])
+            vertexCount++;
+        
+        else if ([line hasPrefix:@"vn "])
+            normalCount++;
+        else if ([line hasPrefix:@"vt "])
+        {
+            textureCoordsCount++;
+            if (firstTextureCoords) // count to see how many texture coords there
+            {
+                firstTextureCoords = NO;
+                NSString *texLine = [line substringFromIndex:3];
+                NSArray *texParts = [texLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                valuesPerCoord = [texParts count];
+            }
+        }
+        else if ([line hasPrefix:@"f"])
+        {
+            
+            NSString *faceLine = [line substringFromIndex:2];
+            NSArray *faces = [faceLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+            
+            if ([faces count] == 3){ //tris okay no problem
+                faceCount++;
+                for (NSString *oneFace in faces)
+                {
+                    vecIndexArray.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                    
+                    std::map<std::string,int>::iterator it = mapVertexCombinations.find([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                    
+                    if (it == mapVertexCombinations.end())
+                    {
+                        mapVertexCombinations[[oneFace cStringUsingEncoding:NSUTF8StringEncoding]] = mapCounter;
+                        vecVertexCombinations.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                    }
+                    mapCounter++;
+                    
+                }
+                
+            }
+            else if ([faces count] == 4) //make two tris from quad
+            {
+                faceCount+=2;
+                [indexArray addObject:[faces objectAtIndex:0]]; // 0-1-2 0-2-3
+                [indexArray addObject:[faces objectAtIndex:1]];
+                [indexArray addObject:[faces objectAtIndex:2]];
+                
+                [indexArray addObject:[faces objectAtIndex:0]];
+                [indexArray addObject:[faces objectAtIndex:2]];
+                [indexArray addObject:[faces objectAtIndex:3]];
+                
+                vecIndexArray.push_back([[faces objectAtIndex:0] cStringUsingEncoding:NSUTF8StringEncoding]);
+                vecIndexArray.push_back([[faces objectAtIndex:1] cStringUsingEncoding:NSUTF8StringEncoding]);
+                vecIndexArray.push_back([[faces objectAtIndex:2] cStringUsingEncoding:NSUTF8StringEncoding]);
+                
+                vecIndexArray.push_back([[faces objectAtIndex:0] cStringUsingEncoding:NSUTF8StringEncoding]);
+                vecIndexArray.push_back([[faces objectAtIndex:2] cStringUsingEncoding:NSUTF8StringEncoding]);
+                vecIndexArray.push_back([[faces objectAtIndex:3] cStringUsingEncoding:NSUTF8StringEncoding]);
+                
+                for (NSString *oneFace in faces)
+                {
+                    
+                    std::map<std::string,int>::iterator it = mapVertexCombinations.find([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                    
+                    if (it == mapVertexCombinations.end())
+                    {
+                        mapVertexCombinations[[oneFace cStringUsingEncoding:NSUTF8StringEncoding]] = mapCounter;
+                        mapCounter++;
+                        vecVertexCombinations.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                    }
+                    
+                    
+                }
+            }
+            else quadTriError = 1;
+        }
+        else if ([line hasPrefix:@"m"])
+        {
+            NSString *truncLine = [line substringFromIndex:7];
+            self.sourceMtlFilePath = truncLine;
+            NSString *mtlPath = [[NSBundle mainBundle] pathForResource:[[truncLine lastPathComponent] stringByDeletingPathExtension] ofType:[truncLine pathExtension]];
+            
+            
+            self.materials = [self getMaterials:mtlPath];
+            existMatFile = 1;
+        }
+        else if ([line hasPrefix:@"g"])
+            groupCount++;
+        
+        
+    }
+    fclose(file);
+    
+    
+
+    
+
+    [ResourceManager resources].totalTris+=faceCount;
+    
+    
+
+    
+    GLfloat RawVertexData[vertexCount*3];
+    GLfloat RawNormalData[normalCount*3];
+    GLfloat RawTextureData[textureCoordsCount*2];
+    
+    int vertexCountx3 = 0;
+    int normCountx3 = 0;
+    int texCountx2 = 0;
+    
+    for (NSString * line in lines)
+    {
+        if ([line hasPrefix:@"v "])
+        {
+            NSString *lineTrunc = [line substringFromIndex:2];
+            NSArray *lineVertices = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+            
+            RawVertexData[vertexCountx3] = [[lineVertices objectAtIndex:0] floatValue];
+            RawVertexData[vertexCountx3+1] = [[lineVertices objectAtIndex:1] floatValue];
+            RawVertexData[vertexCountx3+2] = [[lineVertices objectAtIndex:2] floatValue];
+            vertexCountx3+=3;
+        }
+        
+        else if ([line hasPrefix: @"vn "])
+        {
+            NSString *lineTrunc = [line substringFromIndex:3];
+            NSArray *lineNorms = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+            RawNormalData[normCountx3] = [[lineNorms objectAtIndex:0] floatValue];
+            RawNormalData[normCountx3+1] = [[lineNorms objectAtIndex:1] floatValue];
+            RawNormalData[normCountx3+2] = [[lineNorms objectAtIndex:2] floatValue];
+            normCountx3+=3;
+            
+        }
+        else if ([line hasPrefix: @"vt "])
+        {
+            NSString *lineTrunc = [line substringFromIndex:3];
+            NSArray *lineCoords = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+            RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:0] floatValue];
+            RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:1] floatValue];
+        }
+        
+        
+        
+    }
+    
+    
+    // **************************************************
+    //  ***** Fill arrays with data from file
+    // **************************************************
+    
+    GLuint dataBufferSize = mapVertexCombinations.size();
+    GLfloat dataBuffer[dataBufferSize*8];
+    int buffPos = 0;
+    for (int i = 0; i<vecVertexCombinations.size(); i++)
+    {
+        
+        const char *key = "bob";
+        std::string currFace = vecVertexCombinations[i];
+        std::map<std::string,int>::iterator it = mapVertexCombinations.find(currFace);
+        
+        if (it != mapVertexCombinations.end())
+            key = it->first.c_str();
+        
+        NSString *pair = [NSString stringWithCString:key encoding:NSUTF8StringEncoding];
+        NSArray *pairParts = [pair componentsSeparatedByString:@"/"];
+        int currVertexPos = [[pairParts objectAtIndex:0] intValue]-1; // we substract one because file string is not 0-based
+        int currTextPos = [[pairParts objectAtIndex:1] intValue]-1;
+        int currNormalPos = [[pairParts objectAtIndex:2] intValue]-1;
+        
+        //add three vert coords
+        dataBuffer[buffPos] = RawVertexData[currVertexPos*3];
+        dataBuffer[buffPos+1] = RawVertexData[currVertexPos*3+1];
+        dataBuffer[buffPos+2] = RawVertexData[currVertexPos*3+2];
+        
+        
+        //add three normal coords
+        dataBuffer[buffPos+3] = RawNormalData[currNormalPos*3];
+        dataBuffer[buffPos+4] = RawNormalData[currNormalPos*3+1];
+        dataBuffer[buffPos+5] = RawNormalData[currNormalPos*3+2];
+        
+        
+        //add three text coords
+        dataBuffer[buffPos+6] = RawTextureData[currTextPos*2];
+        dataBuffer[buffPos+7] = (1-RawTextureData[currTextPos*2+1]);
+        
+        
+        buffPos+=8;
+    }
+    
+    
+    
+    // **************************************************
+    // ***** Create new index buffer by searching for i/j/k string
+    // **************************************************
+    
+    GLuint indexBuffer[faceCount*3];
+    _indexBufferSize = faceCount*3;
+    
+
+    
+    for (int i = 0; i < faceCount*3; i+=3)
+    {
+        
+        std::map<std::string,int>::iterator it = mapVertexCombinations.find(vecIndexArray[i]);
+        if (it != mapVertexCombinations.end())
+            indexBuffer[i] = it->second;
+        
+        it = mapVertexCombinations.find(vecIndexArray[i+1]);
+        if (it != mapVertexCombinations.end())
+            indexBuffer[i+1] = it->second;
+        
+        it = mapVertexCombinations.find(vecIndexArray[i+2]);
+        if (it != mapVertexCombinations.end())
+            indexBuffer[i+2] = it->second;
+    }
+
+    
+
+    
+    
+    GLuint dbSize =dataBufferSize*8;    
+    std::vector<GLfloat> vecData;
+    for(int i=0;i<dbSize;i++)
+    {
+        vecData.push_back(dataBuffer[i]);
+    }
+    
+    std::vector<GLuint> vecIndex;
+    for(int i=0;i<_indexBufferSize;i++)
+    {
+        vecIndex.push_back(indexBuffer[i]);
+    }
+    printf("\n");
+    
+
+    
+    Mesh *toReturn = nil;//[[Mesh alloc] initWithDataBuffer:vecData indexBuffer:vecIndex program:program];
+    
+
+    return toReturn;
+
+}
 
 @end

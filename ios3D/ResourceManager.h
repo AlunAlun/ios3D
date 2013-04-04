@@ -8,9 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "Scene.h"
+#import "Mesh.h"
+#import "Material.h"
 
 
-@interface AssetsSingleton : NSObject {
+@interface ResourceManager : NSObject {
     // whatever instance vars you want
 }
 
@@ -21,9 +23,11 @@
 @property (nonatomic, strong) NSMutableArray *materials;
 @property (assign) int totalTris;
 
-+ (AssetsSingleton *)sharedAssets;   // class method to return the singleton object
++ (ResourceManager *)resources;   // class method to return the singleton object
 
 - (void)addSceneNode:(Node*)node; 
 - (Node*)getSceneNodeWithName:(NSString *)name;
+
++ (Mesh*)WaveFrontOBJLoadMesh:(NSString*)fileName withMaterial:(Material*)mat;
 
 @end

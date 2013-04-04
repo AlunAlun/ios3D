@@ -8,7 +8,7 @@
 
 #import "ControlPanel.h"
 #import "Scene.h"
-#import "AssetsSingleton.h"
+#import "ResourceManager.h"
 
 @implementation ControlPanel
 @synthesize sceneTree = _sceneTree;
@@ -52,7 +52,7 @@
     
     //add labels for all nodes
     float yIncrement = 10.0;
-    for(Node* node in [AssetsSingleton sharedAssets].scene.children)
+    for(Node* node in [ResourceManager resources].scene.children)
     {
         UILabel *newLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, yIncrement, 260.0, 20.0)];
         yIncrement+=25;
@@ -76,7 +76,7 @@
     [self addSubview:materialTitle];
     
     //get material of current node
-    Node *currNodeObject = [[AssetsSingleton sharedAssets].scene.children objectAtIndex:self.currentNode];
+    Node *currNodeObject = [[ResourceManager resources].scene.children objectAtIndex:self.currentNode];
     Material *mat = currNodeObject.materialDefault;
     
 }

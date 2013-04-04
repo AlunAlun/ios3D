@@ -30,13 +30,28 @@
         self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
         self.specular = GLKVector4Make(DEFAULT_SPECULAR, DEFAULT_SPECULAR, DEFAULT_SPECULAR, 1.0);
         self.shininess = DEFAULT_SHININESS;
-        [self loadTexture:@"white" ofType:@"png"];
+        self.texture = nil;
         self.textureDetail = nil;
     }
     return self;
 }
 
--(id)initWithTexture:(NSString*)filename ofType:(NSString*)type
+-(id)initWithProgram:(GLuint)program
+{
+    if ((self = [super init])) {
+        self.name = @"WhiteTexture";
+        self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
+        self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
+        self.specular = GLKVector4Make(DEFAULT_SPECULAR, DEFAULT_SPECULAR, DEFAULT_SPECULAR, 1.0);
+        self.shininess = DEFAULT_SHININESS;
+        self.program = program;
+        self.texture = nil;
+        self.textureDetail = nil;
+    }
+    return self;
+}
+
+-(id)initWithTexture:(NSString*)filename ofType:(NSString*)type andProgram:(GLuint)program
 {
     if ((self = [super init])) {
         //load texture
@@ -53,6 +68,7 @@
         self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
         self.specular = GLKVector4Make(DEFAULT_SPECULAR, DEFAULT_SPECULAR, DEFAULT_SPECULAR, 1.0);
         self.shininess = DEFAULT_SHININESS;
+        self.program = program;
     }
     return self;
 }

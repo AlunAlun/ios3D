@@ -16,7 +16,7 @@
 #import "Scene.h"
 #import "SimpleCube.h"
 #import "ControlPanel.h"
-#import "AssetsSingleton.h"
+#import "ResourceManager.h"
 #import "ShaderLoader.h"
 
 
@@ -158,7 +158,7 @@ typedef struct
 	// Do any additional setup after loading the view, typically from a nib.
     // Create context
     //self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    self.context = [AssetsSingleton sharedAssets].context;
+    self.context = [ResourceManager resources].context;
     if (!self.context) {
         NSLog(@"Failed to create ES context");
         exit(1);
@@ -222,7 +222,7 @@ typedef struct
     NSError* error = nil;
     //self.currentScene = [[Scene alloc] initWithProgram:_shaderDetailTexture error:&error];
 
-    self.currentScene = [AssetsSingleton sharedAssets].scene;
+    self.currentScene = [ResourceManager resources].scene;
     
     if (!self.currentScene)
     {
@@ -239,7 +239,7 @@ typedef struct
     }
     else{
         //add scene to singleton
-        [AssetsSingleton sharedAssets].scene = (Scene*)self.currentScene;
+        [ResourceManager resources].scene = (Scene*)self.currentScene;
         
         // panel stuff
         _isPanel = NO;
@@ -338,7 +338,7 @@ typedef struct
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
     self.performanceLabel.text = [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
                                   frameDuration * 1000.0,
-                                  [AssetsSingleton sharedAssets].totalTris];
+                                  [ResourceManager resources].totalTris];
     
 }
 

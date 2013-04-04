@@ -8,6 +8,8 @@
 
 #import "Node.h"
 #import "Material.h"
+#import "Mesh.h"
+
 
 @interface WaveFrontObject : Node {
     NSString			*sourceObjFilePath;
@@ -34,10 +36,9 @@
 @property (strong, nonatomic) NSMutableArray *dataBufferArray;
 @property (strong, nonatomic) NSMutableArray *indexBufferArray;
 
-- (id)initWithPath:(NSString *)path program:(GLuint)program error:(NSError**)error;
+- (id)initWithPath:(NSString *)path program:(GLuint)program outMesh:(Mesh**)mesh error:(NSError**)error;
 - (Material*)getDefaultMaterial;
 - (Material*)getMaterialCalled:(NSString*)matName;
-//- (void)setProgram:(GLuint)program;
-
+- (Mesh*)test:(GLuint)program;
 
 @end
