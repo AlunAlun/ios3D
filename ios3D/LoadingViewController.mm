@@ -11,6 +11,7 @@
 #import "WaveFrontObject.h"
 #import "ShaderLoader.h"
 #import "ResourceManager.h"
+#import "Camera.h"
 
 
 @interface LoadingViewController ()
@@ -71,6 +72,15 @@
     
     
     //create nodes
+    
+    Camera *cam = [[Camera alloc] init];
+    cam.name = @"Main Camera";
+    cam.position = GLKVector3Make(0.0, 150.0, 250.0f);
+    cam.lookAt = GLKVector3Make(0.0, 100.0, 0.0);
+    cam.clipNear = 100.0;
+    cam.clipFar = 1000.0;
+    cam.aspectRatio = 45.0;
+    
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
@@ -91,6 +101,7 @@
     
     //Init scene and add objects to graph
     [ResourceManager resources].scene = [[Scene alloc] initWitName:@"Body Scene"];
+    [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:avatarMesh];
     [[ResourceManager resources].scene addChild:shirtMesh];
     [[ResourceManager resources].scene addChild:skirtMesh];

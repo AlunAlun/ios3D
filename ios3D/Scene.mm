@@ -45,4 +45,15 @@
     
 }
 
+-(Camera*)getCamera:(int)camId
+{
+    int counter = 0;
+    for (Node *n in self.children)
+    {
+        if ([n isKindOfClass:[Camera class]] && counter==camId)
+            return (Camera*)n;
+    }
+    return nil;
+}
+
 @end

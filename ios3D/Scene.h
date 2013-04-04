@@ -7,9 +7,10 @@
 //
 
 #import "Node.h"
+#import "Camera.h"
 
 @interface Scene : Node
 
 - (id)initWitName:(NSString*)name;
-
+- (Camera*)getCamera:(int)camId;
 @end

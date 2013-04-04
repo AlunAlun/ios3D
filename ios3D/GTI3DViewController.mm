@@ -18,33 +18,9 @@
 #import "ControlPanel.h"
 #import "ResourceManager.h"
 #import "ShaderLoader.h"
-
-
-typedef struct
-{
-    char* Name;
-    GLint Location;
-}Uniform;
-
-typedef struct
-{
-    int NumberOfUniforms;
-    Uniform* Uniform;
-    
-}UniformInfo;
+#import "Camera.h"
 
 @interface GTI3DViewController () {
-    
-
-    
-    GLuint _shaderDetailTexture;
-    GLuint _shaderTexture;
-    GLuint _shaderPhong;
-
-   
-    GLuint _verticesVBO;
-    GLuint _indicesVBO;
-    GLuint _VAO;
     
     GLKMatrix4 _projectionMatrix;
     GLKMatrix4 _modelViewMatrix;
@@ -64,7 +40,7 @@ typedef struct
 }
 @property (strong, nonatomic) EAGLContext *context;
 @property (strong, nonatomic) GLKTextureInfo *texture;
-@property (strong) Node * currentScene;
+@property (strong) Scene * currentScene;
 
 @end
 
@@ -75,97 +51,22 @@ typedef struct
 @synthesize controlPanel = _controlPanel;
 
 
-- (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType
-{
-    // Load the shader in memory
-    NSString *shaderPath = [[NSBundle mainBundle] pathForResource:shaderName ofType:@"glsl"];
-    NSError *error;
-    NSString *shaderString = [NSString stringWithContentsOfFile:shaderPath encoding:NSUTF8StringEncoding error:&error];
-    if(!shaderString)
-    {
-        NSLog(@"Error loading shader: %@", error.localizedDescription);
-        exit(1);
-    }
-    
-    // Create the shader inside openGL
-    GLuint shaderHandle = glCreateShader(shaderType);
-    
-    // Give that shader the source code loaded in memory
-    const char *shaderStringUTF8 = [shaderString UTF8String];
-    int shaderStringLength = [shaderString length];
-    glShaderSource(shaderHandle, 1, &shaderStringUTF8, &shaderStringLength);
-    
-    // Compile the source code
-    glCompileShader(shaderHandle);
-    
-    // Get the error messages in case the compiling has failed
-    GLint compileSuccess;
-    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
-    if (compileSuccess == GL_FALSE) {
-        GLint logLength;
-        glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &logLength);
-        if(logLength > 0)
-        {
-            GLchar *log = (GLchar *)malloc(logLength);
-            glGetShaderInfoLog(shaderHandle, logLength, &logLength, log);
-            NSLog(@"Shader compile log:\n%s", log);
-            free(log);
-        }
-        exit(1);
-    }
-    
-    return shaderHandle;
-}
-
--(GLuint)createProgramWithVertex:(NSString*)vertex Fragment:(NSString*)fragment
-{
-    // Compile both shaders
-    GLuint vertexShader = [self compileShader:vertex withType:GL_VERTEX_SHADER];
-    GLuint fragmentShader = [self compileShader:fragment withType:GL_FRAGMENT_SHADER];
-    
-    // Create the program in openGL, attach the shaders and link them
-    GLuint programHandle = glCreateProgram();
-    glAttachShader(programHandle, vertexShader);
-    glAttachShader(programHandle, fragmentShader);
-    glLinkProgram(programHandle);
-    
-    // Get the error message in case the linking has failed
-    GLint linkSuccess;
-    glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
-    if (linkSuccess == GL_FALSE)
-    {
-        GLint logLength;
-        glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &logLength);
-        if(logLength > 0)
-        {
-            GLchar *log = (GLchar *)malloc(logLength);
-            glGetProgramInfoLog(programHandle, logLength, &logLength, log);
-            NSLog(@"Program link log:\n%s", log);
-            free(log);
-        }
-        exit(1);
-    }
-    
-    //_program = programHandle;
-    return programHandle;
-}
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
+    //get current scene (called in render method)
+    self.currentScene = [ResourceManager resources].scene;
+    if (!self.currentScene) {NSLog(@"Scene not loaded properly");exit(1);}
    
-	// Do any additional setup after loading the view, typically from a nib.
-    // Create context
-    //self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    //get camera
+    Camera *cam = [self.currentScene getCamera:0];
+    if (!cam) {NSLog(@"No Camera defined in scene");exit(1);}
+    
+    //load context from Resource Manager
     self.context = [ResourceManager resources].context;
-    if (!self.context) {
-        NSLog(@"Failed to create ES context");
-        exit(1);
-    }
-    
-
-    
+    if (!self.context) {NSLog(@"Failed to create ES context");exit(1);}
+      
     // Initialize view
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
@@ -187,20 +88,14 @@ typedef struct
     _screenHeight = height;
     glViewport(0, 0, width, height);
     
-    //compile shaders
-    //ShaderLoader *loader = [[ShaderLoader alloc] init];
-    //_shaderDetailTexture = [loader createProgramWithVertex:@"ShaderDetailTextureVertex" Fragment:@"ShaderDetailTextureFragment"];
-    //_shaderPhong = [loader createProgramWithVertex:@"ShaderPhongVertex" Fragment:@"ShaderPhongFragment"];
-    
-    
-
     //setup matrices
-    _modelViewMatrix = GLKMatrix4MakeLookAt(0.0f, 150.0f, 200.0f, 0.0f, 100.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45.0f), (float)width/(float)height, 100.0f, 1000.0f);
-    
-
-
-    
+    _modelViewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+                                            cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
+                                            0.0f, 1.0f, 0.0f);
+    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(cam.aspectRatio),
+                                                  (float)width/(float)height,
+                                                  cam.clipNear, cam.clipFar);
+        
     //gestures/input
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(Tapped:)];
     tap.numberOfTapsRequired = 2;
@@ -209,46 +104,11 @@ typedef struct
     UIPinchGestureRecognizer *pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(Scale:)];
 	[view addGestureRecognizer:pinchRecognizer];
     
-    
-
     _isDragging = false;	
     _xTouchLoc = -1.0f;
     _yTouchLoc = -1.0f;
-    
     _lastScale = 1.0f;
-    
- 
-    //cargar la unica escena que hemos creado hasta ahora
-    NSError* error = nil;
-    //self.currentScene = [[Scene alloc] initWithProgram:_shaderDetailTexture error:&error];
-
-    self.currentScene = [ResourceManager resources].scene;
-    
-    if (!self.currentScene)
-    {
-        NSLog(@"%@", [error localizedDescription]);
-
-        UIAlertView *alert = [[UIAlertView alloc]
-                              initWithTitle: @"D'oh!"
-                              message: [error localizedDescription]
-                              delegate: nil
-                              cancelButtonTitle:@"Scene not initialised"
-                              otherButtonTitles:nil];
-        [alert show];
-
-    }
-    else{
-        //add scene to singleton
-        [ResourceManager resources].scene = (Scene*)self.currentScene;
-        
-        // panel stuff
-        _isPanel = NO;
-
-        
-    }
-
-
-
+    _isPanel = NO;
 
 }
 
@@ -327,14 +187,13 @@ typedef struct
     glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
     
-    
+    //time set
     CFTimeInterval previousTimestamp = CFAbsoluteTimeGetCurrent();
     
-
-
     //parse the scene
     [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
-        
+    
+    //time measure
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
     self.performanceLabel.text = [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
                                   frameDuration * 1000.0,
@@ -364,6 +223,7 @@ typedef struct
     
     [EAGLContext setCurrentContext:self.context];
     
+    /*
     glDeleteBuffers(1, &_verticesVBO);
     glDeleteBuffers(1, &_indicesVBO);
     glDeleteVertexArraysOES(1, &_VAO);
@@ -382,7 +242,7 @@ typedef struct
         glDeleteProgram(_shaderPhong);
         _shaderPhong = 0;
     }
-    
+     */
 
 }
 
