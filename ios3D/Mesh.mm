@@ -82,7 +82,7 @@
         glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*3/8 ) );
 
         //check we have a texture coord in our shader
-        if((attribute = glGetAttribLocation(_program, "VertexTexCoord0")) != -1)
+        if((attribute = glGetAttribLocation(_program, "a_vertexTexCoord0")) != -1)
         {
             glEnableVertexAttribArray( attribute );
             glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
@@ -174,13 +174,13 @@
     u = glGetUniformLocation(_program, "u_mat_shininess");
     if(u!=-1)glUniform1f(u, self.material.shininess);
     
-    u = glGetUniformLocation(_program, "TextureSampler");
+    u = glGetUniformLocation(_program, "u_textureSampler");
     if(u!=-1)glUniform1i(u, 0); //Texture unit 0 is for base images.
     
-    u = glGetUniformLocation(_program, "DetailSampler");
+    u = glGetUniformLocation(_program, "u_detailSampler");
     if(u!=-1)glUniform1i(u, 2); //Texture unit 2 is for detail images.
     
-    GLint detailBool = glGetUniformLocation(_program, "UseDetail");
+    GLint detailBool = glGetUniformLocation(_program, "u_useDetail");
     
     //texture
     if (self.material.texture != nil)

@@ -93,19 +93,22 @@
     light.specular = GLKVector3Make(1.0, 1.0, 1.0);
     
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
+    avatarMat.specular = GLKVector4Make(1.0, 1.0, 1.0, 1.0);
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
     
-    /*
+    
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDetailTexture];
+
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
     
+   
     Material *skirtMat = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg" andProgram:shaderDetailTexture];
     [skirtMat loadDetailTexture:@"detail_jeans" ofType:@"png"];
     Mesh *skirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"skirt.obj" withMaterial:skirtMat];
     skirtMesh.name = @"Skirt";
-     */
+     
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
     floorMat.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
@@ -117,8 +120,8 @@
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:avatarMesh];
-    //[[ResourceManager resources].scene addChild:shirtMesh];
-    //[[ResourceManager resources].scene addChild:skirtMesh];
+    [[ResourceManager resources].scene addChild:shirtMesh];
+    [[ResourceManager resources].scene addChild:skirtMesh];
     [[ResourceManager resources].scene addChild:floorMesh];
     
     // Call completion handler - this performs the segue and loads 3D view
