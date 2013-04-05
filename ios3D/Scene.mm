@@ -56,4 +56,15 @@
     return nil;
 }
 
+-(Light*)getLight:(int)lightId
+{
+    int counter = 0;
+    for (Node *n in self.children)
+    {
+        if ([n isKindOfClass:[Light class]] && counter==lightId)
+            return (Light*)n;
+    }
+    return nil;
+}
+
 @end

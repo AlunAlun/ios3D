@@ -14,13 +14,13 @@
 @synthesize children = _children;
 @synthesize rotation = _rotation;
 @synthesize scale = _scale;
-@synthesize materialDefault = _materialDefault;
 @synthesize name = _name;
 
 - (id)init {
     if ((self = [super init])) {
         self.children = [NSMutableArray array];
         self.scale = 1;
+        self.rotation = 0;
         self.position = GLKVector3Make(0,0,0);
         self.name = @"node";
     }

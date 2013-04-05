@@ -21,6 +21,7 @@
 @property (nonatomic, strong) NSMutableArray *sceneNodes;
 @property (nonatomic, strong) NSMutableArray *textures;
 @property (nonatomic, strong) NSMutableArray *materials;
+@property (assign) GLKMatrix4 sceneModelMatrix;
 @property (assign) int totalTris;
 
 + (ResourceManager *)resources;   // class method to return the singleton object

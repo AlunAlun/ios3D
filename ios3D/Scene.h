@@ -8,9 +8,11 @@
 
 #import "Node.h"
 #import "Camera.h"
+#import "Light.h"
 
 @interface Scene : Node
 
 - (id)initWitName:(NSString*)name;
 - (Camera*)getCamera:(int)camId;
+- (Light*)getLight:(int)lightId;
 @end

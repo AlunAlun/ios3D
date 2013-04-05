@@ -14,7 +14,7 @@
 #include <vector>
 
 @implementation ResourceManager
-@synthesize scene, materials, textures, totalTris, sceneNodes, context;
+@synthesize scene, materials, textures, totalTris, sceneNodes, context, sceneModelMatrix;
 
 static ResourceManager *sharedAssetsSingleton = nil;    // static instance variable
 
@@ -31,6 +31,7 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
         self.materials = [[NSMutableArray alloc] init];
         self.textures = [[NSMutableArray alloc] init];
         self.sceneNodes = [[NSMutableArray alloc] init];
+        self.sceneModelMatrix = GLKMatrix4Identity;
         totalTris = 0;
     }
     return self;

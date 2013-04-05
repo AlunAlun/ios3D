@@ -16,10 +16,11 @@
 @property(strong) GLKTextureInfo *textureDetail;
 @property(strong) NSString *name;
 @property (assign) GLuint program;
-@property GLKVector4 diffuse;
-@property GLKVector4 ambient;
-@property GLKVector4 specular;
-@property GLfloat shininess;
+@property (assign) GLKVector4 color;
+@property(assign) GLKVector4 diffuse;
+@property(assign) GLKVector4 ambient;
+@property(assign) GLKVector4 specular;
+@property(assign) GLfloat shininess;
 
 -(id)initWithTexture:(NSString*)filename ofType:(NSString*)type andProgram:(GLuint)program;
 -(void)loadTexture:(NSString*)filename ofType:(NSString*)type;

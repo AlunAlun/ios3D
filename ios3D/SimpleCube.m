@@ -143,7 +143,7 @@ GLuint CcubeIndicesData[36] =
 {
     if ((self = [super init])) {
         _program = program;
-        self.materialDefault = [[Material alloc] init];
+        self.material = [[Material alloc] init];
         
         [self setupBuffers];
         
@@ -227,16 +227,16 @@ GLuint CcubeIndicesData[36] =
     glUniform1f(lightIntensityUniform, 1.3);
     
     GLint diffuseUniform = glGetUniformLocation(_program, "matDiffuse");
-    glUniform4f(diffuseUniform, self.materialDefault.diffuse.r, self.materialDefault.diffuse.g, self.materialDefault.diffuse.b, 1.0f);
+    glUniform4f(diffuseUniform, self.material.diffuse.r, self.material.diffuse.g, self.material.diffuse.b, 1.0f);
     
     GLint ambientUniform = glGetUniformLocation(_program, "matAmbient");
-    glUniform4f(ambientUniform, self.materialDefault.ambient.r, self.materialDefault.ambient.g, self.materialDefault.ambient.b, 1.0f);
+    glUniform4f(ambientUniform, self.material.ambient.r, self.material.ambient.g, self.material.ambient.b, 1.0f);
     
     GLint specularUniform = glGetUniformLocation(_program, "matSpecular");
-    glUniform4f(specularUniform, self.materialDefault.specular.r, self.materialDefault.specular.g, self.materialDefault.specular.b, 1.0f);
+    glUniform4f(specularUniform, self.material.specular.r, self.material.specular.g, self.material.specular.b, 1.0f);
     
     GLint shininessUniform = glGetUniformLocation(_program, "matShininess");
-    glUniform1f(shininessUniform, self.materialDefault.shininess);
+    glUniform1f(shininessUniform, self.material.shininess);
     
     GLint baseImageLoc = glGetUniformLocation(_program, "TextureSampler");
     glUniform1i(baseImageLoc, 0); //Texture unit 0 is for base images.
@@ -247,7 +247,7 @@ GLuint CcubeIndicesData[36] =
     
     //texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(self.materialDefault.texture.target, self.materialDefault.texture.name);
+    glBindTexture(self.material.texture.target, self.material.texture.name);
     
     // Draw!
     glDrawElements( GL_TRIANGLES, sizeof(CcubeIndicesData)/sizeof(GLuint), GL_UNSIGNED_INT, NULL );

@@ -11,6 +11,8 @@
 
 @interface SimpleCube : Node
 
+@property (strong, nonatomic) Material *material;
+
 - (id)initWithProgram:(GLuint)program;
 //- (id)initWithMaterial:(Material *)mat program:(GLuint)program;
 

@@ -12,6 +12,7 @@
 #import "ShaderLoader.h"
 #import "ResourceManager.h"
 #import "Camera.h"
+#import "Light.h"
 
 
 @interface LoadingViewController ()
@@ -81,10 +82,21 @@
     cam.clipFar = 1000.0;
     cam.aspectRatio = 45.0;
     
+    Light *light = [[Light alloc] init];
+    light.name = @"Light";
+    light.position = GLKVector3Make(-200.0, 100.0, 200.0);
+    light.direction = GLKVector3Make(0.0,-1.0,0.0);
+    light.spotCosCutoff = 0.8;
+    light.intensity = 1.3;
+    light.diffuse = GLKVector3Make(1.0, 1.0, 1.0);
+    light.ambient = GLKVector3Make(1.0, 1.0, 1.0);
+    light.specular = GLKVector3Make(1.0, 1.0, 1.0);
+    
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
     
+    /*
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDetailTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
@@ -93,6 +105,7 @@
     [skirtMat loadDetailTexture:@"detail_jeans" ofType:@"png"];
     Mesh *skirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"skirt.obj" withMaterial:skirtMat];
     skirtMesh.name = @"Skirt";
+     */
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
     floorMat.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
@@ -102,9 +115,10 @@
     //Init scene and add objects to graph
     [ResourceManager resources].scene = [[Scene alloc] initWitName:@"Body Scene"];
     [[ResourceManager resources].scene addChild:cam];
+    [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:avatarMesh];
-    [[ResourceManager resources].scene addChild:shirtMesh];
-    [[ResourceManager resources].scene addChild:skirtMesh];
+    //[[ResourceManager resources].scene addChild:shirtMesh];
+    //[[ResourceManager resources].scene addChild:skirtMesh];
     [[ResourceManager resources].scene addChild:floorMesh];
     
     // Call completion handler - this performs the segue and loads 3D view

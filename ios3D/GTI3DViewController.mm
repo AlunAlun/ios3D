@@ -19,6 +19,7 @@
 #import "ResourceManager.h"
 #import "ShaderLoader.h"
 #import "Camera.h"
+#import "ResourceManager.h"
 
 @interface GTI3DViewController () {
     
@@ -89,9 +90,11 @@
     glViewport(0, 0, width, height);
     
     //setup matrices
-    _modelViewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
                                             cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
                                             0.0f, 1.0f, 0.0f);
+    
+    _modelViewMatrix = GLKMatrix4Multiply(viewMatrix, [ResourceManager resources].sceneModelMatrix);
     _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(cam.aspectRatio),
                                                   (float)width/(float)height,
                                                   cam.clipNear, cam.clipFar);
@@ -172,10 +175,25 @@
 {
     UITouch *touch = [[event allTouches] anyObject];
     CGPoint location = [touch locationInView:touch.view];
-    //_modelViewMatrix = GLKMatrix4Translate(_modelViewMatrix, 0, (location.y-_yTouchLoc)*PANTOUCHSENSITIVITY, 0);
-    GLKMatrix4 tm = GLKMatrix4Translate(GLKMatrix4Identity, 0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0);
+
+    //GLKMatrix4 tm = GLKMatrix4Translate([ResourceManager resources].sceneModelMatrix, 0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0);    
+    // _modelViewMatrix = GLKMatrix4Multiply(tm, GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY));
     
-    _modelViewMatrix = GLKMatrix4Multiply(tm, GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY));
+    //rotate scene model
+    GLKMatrix4 rotatedSceneModel = GLKMatrix4RotateY([ResourceManager resources].sceneModelMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY);
+    [ResourceManager resources].sceneModelMatrix = rotatedSceneModel;
+    
+    //get view matrix - needs to be optimized!
+    self.currentScene = [ResourceManager resources].scene;
+    Camera *cam = [self.currentScene getCamera:0];
+    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+                                                 cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
+                                                 0.0f, 1.0f, 0.0f);
+    
+    //multiply for final matrix to be passed to renderer
+    _modelViewMatrix = GLKMatrix4Multiply(viewMatrix, [ResourceManager resources].sceneModelMatrix);
+    
+    
     _xTouchLoc = location.x;
     _yTouchLoc = location.y;    	
 }

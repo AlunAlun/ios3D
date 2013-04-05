@@ -7,6 +7,8 @@
 //
 
 #import "Mesh.h"
+#import "ResourceManager.h"
+#import "Light.h"
 
 
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
@@ -27,27 +29,21 @@
 {
     if ((self = [super init])) {
         
+        //assign program
         self.material = mat;
-        self.materialDefault = mat;
         _program = mat.program;
         
+        
+        //copy buffers into c arrays
         GLfloat dataBuffer[db.size()];
         for(int i=0;i<db.size();i++)
-        {
             dataBuffer[i] = db[i];
 
-        }
-
-
         GLuint indexBuffer[ib.size()];
-
         for(int i=0;i<ib.size();i++)
-        {
-          indexBuffer[i] = ib[i];
+            indexBuffer[i] = ib[i];
 
-        }
         _indexBufferSize = ib.size();
-        
         
         // **************************************************
         // ***** Fill OpenGL Buffers
@@ -75,13 +71,13 @@
         glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
         
         //Vert positions
-        attribute = glGetAttribLocation(_program, "VertexPosition");
+        attribute = glGetAttribLocation(_program, "a_vertex");
         glEnableVertexAttribArray( attribute );
         glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, NULL );
         
         // Give the normals to GL to pass them to the shader
         // We will have to add the VertexNormal attribute in the shader
-        attribute = glGetAttribLocation(_program, "VertexNormal");
+        attribute = glGetAttribLocation(_program, "a_normal");
         glEnableVertexAttribArray( attribute );
         glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*3/8 ) );
 
@@ -113,42 +109,70 @@
 
     glUseProgram( _program );
     
+    Light *light = [[ResourceManager resources].scene getLight:0];
+    Camera *cam = [[ResourceManager resources].scene getCamera:0];
     
-    GLint matMV = glGetUniformLocation(_program, "ModelViewMatrix");
+    GLKMatrix4 modelMatrix = [ResourceManager resources].sceneModelMatrix;//[self modelMatrix:YES];
+    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+                                                cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
+                                                                        0.0f, 1.0f, 0.0f);
+    
+    GLint matM = glGetUniformLocation(_program, "u_m");
+    glUniformMatrix4fv(matM, 1, GL_FALSE, modelMatrix.m);
+    
+    GLint matV = glGetUniformLocation(_program, "u_v");
+    glUniformMatrix4fv(matV, 1, GL_FALSE, viewMatrix.m);
+    
+    GLint matMV = glGetUniformLocation(_program, "u_mv");
     glUniformMatrix4fv(matMV, 1, GL_FALSE, modelViewMatrix.m);
     
-    GLint matP = glGetUniformLocation(_program, "ProjectionMatrix");
+    GLint matP = glGetUniformLocation(_program, "u_p");
     glUniformMatrix4fv(matP, 1, GL_FALSE, projectionMatrix.m);
     
     bool success;
-    GLKMatrix4 normalMatrix4 = GLKMatrix4InvertAndTranspose(modelViewMatrix, &success);
+    GLKMatrix4 normalModelMatrix4 = GLKMatrix4InvertAndTranspose(modelMatrix, &success);
     if (success) {
+        GLKMatrix3 normalModelMatrix3 = GLKMatrix4GetMatrix3(normalModelMatrix4);
+        GLint matNm = glGetUniformLocation(_program, "u_normal_model");
+        glUniformMatrix3fv(matNm, 1, GL_FALSE, normalModelMatrix3.m);
+    }
+    
+    bool success2;
+    GLKMatrix4 normalMatrix4 = GLKMatrix4InvertAndTranspose(modelViewMatrix, &success2);
+    if (success2) {
         GLKMatrix3 normalMatrix3 = GLKMatrix4GetMatrix3(normalMatrix4);
-        GLint matN = glGetUniformLocation(_program, "NormalMatrix");
+        GLint matN = glGetUniformLocation(_program, "u_normal");
         glUniformMatrix3fv(matN, 1, GL_FALSE, normalMatrix3.m);
     }
     
+
     
-    GLint matL = glGetUniformLocation(_program, "LightPosition");
-    GLKVector3 l = GLKVector3Make(100.0f , 300.0f, 300.0f);
-    glUniform3f(matL, l.x, l.y, l.z);
+    
+    GLint uL = glGetUniformLocation(_program, "u_light_pos");
+    glUniform3f(uL, light.position.x, light.position.y, light.position.z);
+    
+    GLint uSpot = glGetUniformLocation(_program, "u_light_spot_dir");
+    glUniform3f(uSpot, light.direction.x, light.direction.y, light.direction.z);
+    
+    GLint uSpotCut = glGetUniformLocation(_program, "u_light_spot_cutoff");
+    glUniform1f(uSpotCut, light.spotCosCutoff);
     
     GLint u;
     
-    u = glGetUniformLocation(_program, "LightIntensity");
-    if(u!=-1)glUniform1f(u, 1.3);
+    u = glGetUniformLocation(_program, "u_light_intensity");
+    if(u!=-1)glUniform1f(u, light.intensity);
     
-    u = glGetUniformLocation(_program, "matDiffuse");
-    if(u!=-1)glUniform4f(u, self.materialDefault.diffuse.r, self.materialDefault.diffuse.g, self.materialDefault.diffuse.b, 1.0f);
+    u = glGetUniformLocation(_program, "u_mat_diffuse");
+    if(u!=-1)glUniform4f(u, self.material.diffuse.r, self.material.diffuse.g, self.material.diffuse.b, 1.0f);
     
-    u = glGetUniformLocation(_program, "matAmbient");
-    if(u!=-1)glUniform4f(u, self.materialDefault.ambient.r, self.materialDefault.ambient.g, self.materialDefault.ambient.b, 1.0f);
+    u = glGetUniformLocation(_program, "u_mat_ambient");
+    if(u!=-1)glUniform4f(u, self.material.ambient.r, self.material.ambient.g, self.material.ambient.b, 1.0f);
     
-    u = glGetUniformLocation(_program, "matSpecular");
-    if(u!=-1)glUniform4f(u, self.materialDefault.specular.r, self.materialDefault.specular.g, self.materialDefault.specular.b, 1.0f);
+    u = glGetUniformLocation(_program, "u_mat_specular");
+    if(u!=-1)glUniform4f(u, self.material.specular.r, self.material.specular.g, self.material.specular.b, 1.0f);
     
-    u = glGetUniformLocation(_program, "matShininess");
-    if(u!=-1)glUniform1f(u, self.materialDefault.shininess);
+    u = glGetUniformLocation(_program, "u_mat_shininess");
+    if(u!=-1)glUniform1f(u, self.material.shininess);
     
     u = glGetUniformLocation(_program, "TextureSampler");
     if(u!=-1)glUniform1i(u, 0); //Texture unit 0 is for base images.
@@ -159,18 +183,18 @@
     GLint detailBool = glGetUniformLocation(_program, "UseDetail");
     
     //texture
-    if (self.materialDefault.texture != nil)
+    if (self.material.texture != nil)
     {
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(self.materialDefault.texture.target, self.materialDefault.texture.name);
+        glBindTexture(self.material.texture.target, self.material.texture.name);
     }
     
-    if (self.materialDefault.textureDetail != nil)
+    if (self.material.textureDetail != nil)
     {
         glActiveTexture(GL_TEXTURE0 + 2);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glBindTexture(self.materialDefault.textureDetail.target, self.materialDefault.textureDetail.name);
+        glBindTexture(self.material.textureDetail.target, self.material.textureDetail.name);
         glUniform1i(detailBool,1);
     }
     else

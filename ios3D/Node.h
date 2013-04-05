@@ -16,7 +16,6 @@
 @property (strong) NSMutableArray * children;
 @property (assign) float rotation;
 @property (assign) float scale;
-@property (strong) Material *materialDefault;
 @property (strong) NSString *name;
 
 

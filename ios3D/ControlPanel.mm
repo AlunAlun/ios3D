@@ -76,8 +76,8 @@
     [self addSubview:materialTitle];
     
     //get material of current node
-    Node *currNodeObject = [[ResourceManager resources].scene.children objectAtIndex:self.currentNode];
-    Material *mat = currNodeObject.materialDefault;
+    //Node *currNodeObject = [[ResourceManager resources].scene.children objectAtIndex:self.currentNode];
+    //Material *mat = currNodeObject.material;
     
 }
 
