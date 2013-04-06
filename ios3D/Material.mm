@@ -11,7 +11,7 @@
 #define DEFAULT_DIFFUSE 0.8
 #define DEFAULT_AMBIENT 0.2
 #define DEFAULT_SPECULAR 0.0
-#define DEFAULT_SHININESS 60.0
+#define DEFAULT_SHININESS 30.0
 
 @implementation Material
 @synthesize texture = _texture;

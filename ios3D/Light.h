@@ -13,8 +13,8 @@
 @property(assign) GLKVector3 direction;
 @property(assign) GLfloat spotCosCutoff;
 @property(assign) GLfloat intensity;
-@property(assign) GLKVector3 diffuse;
-@property(assign) GLKVector3 ambient;
-@property(assign) GLKVector3 specular;
+@property(assign) GLKVector3 diffuseColor;
+@property(assign) GLKVector3 ambientColor;
+@property(assign) GLKVector3 specularColor;
 
 @end

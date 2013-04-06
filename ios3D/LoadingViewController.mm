@@ -84,22 +84,24 @@
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    light.position = GLKVector3Make(-200.0, 100.0, 200.0);
+    light.position = GLKVector3Make(-100.0, 200.0, 300.0);
     light.direction = GLKVector3Make(0.0,-1.0,0.0);
     light.spotCosCutoff = 0.8;
-    light.intensity = 1.3;
-    light.diffuse = GLKVector3Make(1.0, 1.0, 1.0);
-    light.ambient = GLKVector3Make(1.0, 1.0, 1.0);
-    light.specular = GLKVector3Make(1.0, 1.0, 1.0);
+    light.intensity = 1.0;
+    light.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
+    light.ambientColor = GLKVector3Make(1.0, 1.0, 1.0);
+    light.specularColor = GLKVector3Make(1.0, 1.0, 1.0);
     
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
-    avatarMat.specular = GLKVector4Make(1.0, 1.0, 1.0, 1.0);
+    avatarMat.diffuse = GLKVector4Make(0.6, 0.6, 0.6, 1.0);
+    avatarMat.ambient = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
+    avatarMat.specular = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
+    avatarMat.shininess = 100.0;
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
     
     
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDetailTexture];
-
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
     

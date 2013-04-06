@@ -151,6 +151,9 @@
     GLint uL = glGetUniformLocation(_program, "u_light_pos");
     glUniform3f(uL, light.position.x, light.position.y, light.position.z);
     
+    GLint uLc = glGetUniformLocation(_program, "u_light_color");
+    glUniform3f(uLc, light.diffuseColor.x, light.diffuseColor.y, light.diffuseColor.z);
+    
     GLint uSpot = glGetUniformLocation(_program, "u_light_spot_dir");
     glUniform3f(uSpot, light.direction.x, light.direction.y, light.direction.z);
     
