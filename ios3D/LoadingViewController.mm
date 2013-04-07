@@ -84,10 +84,9 @@
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    //light.position = GLKVector3Make(-100.0, 200.0, 300.0); // nice light
-    light.position = GLKVector3Make(0.0, 300.0, 0.0);
-    light.direction = GLKVector3Make(0.0,-1.0,0.0);
-    light.spotCosCutoff = 0.8;
+    light.position = GLKVector3Make(-100.0, 200.0, 300.0); // nice light
+    light.direction = GLKVector3Make(1.0,-1.0,-3.0);
+    light.spotCosCutoff = 0.9;
     light.intensity = 1.0;
     light.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
     light.ambientColor = GLKVector3Make(1.0, 1.0, 1.0);
@@ -97,7 +96,7 @@
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
     avatarMat.diffuse = GLKVector4Make(0.6, 0.6, 0.6, 1.0);
     avatarMat.ambient = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
-    avatarMat.specular = 0.001;
+    avatarMat.specular = 1.0;
     avatarMat.shininess = 50.0;
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";

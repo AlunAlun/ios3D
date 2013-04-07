@@ -221,14 +221,11 @@
     
     //time measure
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
-    Node *f = [[ResourceManager resources].scene getChild:@"Floor"];
-    
-    self.performanceLabel.text = [NSString stringWithFormat:@" %f", f.position.y];
-    /*
+
+
     [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
                                   frameDuration * 1000.0,
                                   [ResourceManager resources].totalTris];
-     */
     
 }
 
