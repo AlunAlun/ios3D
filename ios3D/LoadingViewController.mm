@@ -78,13 +78,14 @@
     cam.name = @"Main Camera";
     cam.position = GLKVector3Make(0.0, 150.0, 250.0f);
     cam.lookAt = GLKVector3Make(0.0, 100.0, 0.0);
-    cam.clipNear = 100.0;
+    cam.clipNear = 5.0;
     cam.clipFar = 1000.0;
     cam.aspectRatio = 45.0;
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    light.position = GLKVector3Make(-100.0, 200.0, 300.0);
+    //light.position = GLKVector3Make(-100.0, 200.0, 300.0); // nice light
+    light.position = GLKVector3Make(0.0, 300.0, 0.0);
     light.direction = GLKVector3Make(0.0,-1.0,0.0);
     light.spotCosCutoff = 0.8;
     light.intensity = 1.0;
@@ -92,38 +93,44 @@
     light.ambientColor = GLKVector3Make(1.0, 1.0, 1.0);
     light.specularColor = GLKVector3Make(1.0, 1.0, 1.0);
     
+    
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
     avatarMat.diffuse = GLKVector4Make(0.6, 0.6, 0.6, 1.0);
     avatarMat.ambient = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
-    avatarMat.specular = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
-    avatarMat.shininess = 100.0;
+    avatarMat.specular = 0.001;
+    avatarMat.shininess = 50.0;
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
+     
     
-    
+    /*
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDetailTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
-    
-   
+    */
+   /*
     Material *skirtMat = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg" andProgram:shaderDetailTexture];
     [skirtMat loadDetailTexture:@"detail_jeans" ofType:@"png"];
     Mesh *skirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"skirt.obj" withMaterial:skirtMat];
     skirtMesh.name = @"Skirt";
-     
+     */
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
-    floorMat.ambient = GLKVector4Make(0.8, 0.8, 0.8, 1.0);
+    floorMat.diffuse = GLKVector4Make(0.4, 0.4, 0.4, 1.0);
+    floorMat.ambient = GLKVector4Make(0.3, 0.3, 0.3, 1.0);
+    floorMat.specular = 0.0;
     Mesh *floorMesh = [ResourceManager WaveFrontOBJLoadMesh:@"floor.obj" withMaterial:floorMat];
+
     floorMesh.name = @"Floor";
+     
     
     //Init scene and add objects to graph
     [ResourceManager resources].scene = [[Scene alloc] initWitName:@"Body Scene"];
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:avatarMesh];
-    [[ResourceManager resources].scene addChild:shirtMesh];
-    [[ResourceManager resources].scene addChild:skirtMesh];
+    //[[ResourceManager resources].scene addChild:shirtMesh];
+    //[[ResourceManager resources].scene addChild:skirtMesh];
     [[ResourceManager resources].scene addChild:floorMesh];
     
     // Call completion handler - this performs the segue and loads 3D view

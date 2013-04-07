@@ -15,4 +15,5 @@
 - (id)initWitName:(NSString*)name;
 - (Camera*)getCamera:(int)camId;
 - (Light*)getLight:(int)lightId;
+- (Node*)getChild:(NSString *)name;
 @end

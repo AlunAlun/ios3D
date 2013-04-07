@@ -76,11 +76,16 @@
     // Change the format of the depth renderbuffer
     // This value is None by default
     view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
-    view.drawableMultisample = GLKViewDrawableMultisample4X;
+    //view.drawableMultisample = GLKViewDrawableMultisample4X;
     
     // Enable face culling and depth test
     glEnable( GL_DEPTH_TEST );
     //glEnable( GL_CULL_FACE  );
+    //glCullFace(GL_BACK);
+
+
+
+    
     
     // Set up the viewport
     int width = view.bounds.size.width;
@@ -176,11 +181,13 @@
     UITouch *touch = [[event allTouches] anyObject];
     CGPoint location = [touch locationInView:touch.view];
 
-    //GLKMatrix4 tm = GLKMatrix4Translate([ResourceManager resources].sceneModelMatrix, 0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0);    
-    // _modelViewMatrix = GLKMatrix4Multiply(tm, GLKMatrix4RotateY(_modelViewMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY));
+    //translated
+    GLKMatrix4 movedModel = GLKMatrix4Translate([ResourceManager resources].sceneModelMatrix, 0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0);
     
-    //rotate scene model
-    GLKMatrix4 rotatedSceneModel = GLKMatrix4RotateY([ResourceManager resources].sceneModelMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY);
+    //add rotation scene model
+    GLKMatrix4 rotatedSceneModel = GLKMatrix4RotateY(movedModel, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY);
+
+    //set
     [ResourceManager resources].sceneModelMatrix = rotatedSceneModel;
     
     //get view matrix - needs to be optimized!
@@ -204,6 +211,7 @@
     // Clear the screen
     glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+
     
     //time set
     CFTimeInterval previousTimestamp = CFAbsoluteTimeGetCurrent();
@@ -213,9 +221,14 @@
     
     //time measure
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
-    self.performanceLabel.text = [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
+    Node *f = [[ResourceManager resources].scene getChild:@"Floor"];
+    
+    self.performanceLabel.text = [NSString stringWithFormat:@" %f", f.position.y];
+    /*
+    [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
                                   frameDuration * 1000.0,
                                   [ResourceManager resources].totalTris];
+     */
     
 }
 

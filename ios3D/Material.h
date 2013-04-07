@@ -19,7 +19,7 @@
 @property (assign) GLKVector4 color;
 @property(assign) GLKVector4 diffuse;
 @property(assign) GLKVector4 ambient;
-@property(assign) GLKVector4 specular;
+@property(assign) float specular;
 @property(assign) GLfloat shininess;
 
 -(id)initWithTexture:(NSString*)filename ofType:(NSString*)type andProgram:(GLuint)program;

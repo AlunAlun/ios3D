@@ -14,6 +14,8 @@
 - (id)initWitName:(NSString*)name {
     if ((self = [super init])) {
         self.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
+        self.position = GLKVector3Make(0.0, 300.0, 0.0);
+        self.direction = GLKVector3Make(0.0, -1.0, 0.0);
     }
     return self;
 }

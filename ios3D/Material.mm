@@ -31,7 +31,7 @@
         self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
         self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
         self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
-        self.specular = GLKVector4Make(DEFAULT_SPECULAR, DEFAULT_SPECULAR, DEFAULT_SPECULAR, 1.0);
+        self.specular =  DEFAULT_SPECULAR;
         self.shininess = DEFAULT_SHININESS;
         self.texture = nil;
         self.textureDetail = nil;
@@ -46,7 +46,7 @@
         self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
         self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
         self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
-        self.specular = GLKVector4Make(DEFAULT_SPECULAR, DEFAULT_SPECULAR, DEFAULT_SPECULAR, 1.0);
+        self.specular =  DEFAULT_SPECULAR;
         self.shininess = DEFAULT_SHININESS;
         self.program = program;
         self.texture = nil;
@@ -71,7 +71,7 @@
         self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
         self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
         self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
-        self.specular = GLKVector4Make(DEFAULT_SPECULAR, DEFAULT_SPECULAR, DEFAULT_SPECULAR, 1.0);
+        self.specular =  DEFAULT_SPECULAR;
         self.shininess = DEFAULT_SHININESS;
         self.program = program;
     }

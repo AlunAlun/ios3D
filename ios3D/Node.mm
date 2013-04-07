@@ -19,7 +19,7 @@
 - (id)init {
     if ((self = [super init])) {
         self.children = [NSMutableArray array];
-        self.scale = 1;
+        self.scale = 1.0;
         self.rotation = 0;
         self.position = GLKVector3Make(0,0,0);
         self.name = @"node";
@@ -48,6 +48,7 @@
 {
     //cargar identity matrix
     GLKMatrix4 modelMatrix = GLKMatrix4Identity;
+
     //trasladar a nuestro posicion
     modelMatrix = GLKMatrix4Translate(modelMatrix, self.position.x, self.position.y, self.position.z );
     

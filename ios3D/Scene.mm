@@ -45,6 +45,17 @@
     
 }
 
+-(Node*)getChild:(NSString *)name
+{
+
+    for (Node *n in self.children)
+    {
+        if (n.name == name)
+            return (Node*)n;
+    }
+    return nil;
+}
+
 -(Camera*)getCamera:(int)camId
 {
     int counter = 0;

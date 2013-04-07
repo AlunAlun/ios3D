@@ -101,18 +101,22 @@
 {
     [super renderWithMV:modelViewMatrix P:projectionMatrix];
 
+    GLKMatrix4 modelMatrix = [self modelMatrix:YES];
+    
     //apply all transformations
-    modelViewMatrix = GLKMatrix4Multiply(modelViewMatrix, [self modelMatrix:YES]);
+    modelViewMatrix = GLKMatrix4Multiply(modelViewMatrix, modelMatrix);
     
     // Bind the VAO and the program
     glBindVertexArrayOES( _VAO );
 
+    
+    
     glUseProgram( _program );
+    
     
     Light *light = [[ResourceManager resources].scene getLight:0];
     Camera *cam = [[ResourceManager resources].scene getCamera:0];
     
-    GLKMatrix4 modelMatrix = [ResourceManager resources].sceneModelMatrix;//[self modelMatrix:YES];
     GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
                                                 cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
                                                                         0.0f, 1.0f, 0.0f);
@@ -146,7 +150,8 @@
     }
     
 
-    
+    GLint uCam = glGetUniformLocation(_program, "u_camera_eye");
+    glUniform3f(uCam, cam.position.x, cam.position.y, cam.position.z);
     
     GLint uL = glGetUniformLocation(_program, "u_light_pos");
     glUniform3f(uL, light.position.x, light.position.y, light.position.z);
@@ -154,7 +159,7 @@
     GLint uLc = glGetUniformLocation(_program, "u_light_color");
     glUniform3f(uLc, light.diffuseColor.x, light.diffuseColor.y, light.diffuseColor.z);
     
-    GLint uSpot = glGetUniformLocation(_program, "u_light_spot_dir");
+    GLint uSpot = glGetUniformLocation(_program, "u_light_dir");
     glUniform3f(uSpot, light.direction.x, light.direction.y, light.direction.z);
     
     GLint uSpotCut = glGetUniformLocation(_program, "u_light_spot_cutoff");
@@ -172,7 +177,7 @@
     if(u!=-1)glUniform4f(u, self.material.ambient.r, self.material.ambient.g, self.material.ambient.b, 1.0f);
     
     u = glGetUniformLocation(_program, "u_mat_specular");
-    if(u!=-1)glUniform4f(u, self.material.specular.r, self.material.specular.g, self.material.specular.b, 1.0f);
+    if(u!=-1)glUniform1f(u, self.material.specular);
     
     u = glGetUniformLocation(_program, "u_mat_shininess");
     if(u!=-1)glUniform1f(u, self.material.shininess);
@@ -202,6 +207,7 @@
     }
     else
         glUniform1i(detailBool,0);
+    
     
     
     // Draw!

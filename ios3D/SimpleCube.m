@@ -233,7 +233,7 @@ GLuint CcubeIndicesData[36] =
     glUniform4f(ambientUniform, self.material.ambient.r, self.material.ambient.g, self.material.ambient.b, 1.0f);
     
     GLint specularUniform = glGetUniformLocation(_program, "matSpecular");
-    glUniform4f(specularUniform, self.material.specular.r, self.material.specular.g, self.material.specular.b, 1.0f);
+    glUniform1f(specularUniform, self.material.specular);
     
     GLint shininessUniform = glGetUniformLocation(_program, "matShininess");
     glUniform1f(shininessUniform, self.material.shininess);
