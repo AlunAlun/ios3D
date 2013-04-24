@@ -29,7 +29,7 @@ typedef struct
 }
 
 + (Renderer*)renderer;
-- (void)renderAllWithMV:(GLKMatrix4)modelView P:(GLKMatrix4)projection;
+- (void)renderAllWithProjection:(GLKMatrix4)projection;
 - (void)addInstance:(RenderInstance)toAdd;
 - (std::vector<RenderInstance>)getInstances;
 - (void)clearInstances;

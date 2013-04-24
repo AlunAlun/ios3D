@@ -32,12 +32,19 @@ static Renderer *renderSingleton = nil;    // static instance variable
     return self;
 }
 
-- (void)renderAllWithMV:(GLKMatrix4)modelView P:(GLKMatrix4)projection
+- (void)renderAllWithProjection:(GLKMatrix4)projection
 {
+    Light *light = [[ResourceManager resources].scene getLight:0];
+    Camera *cam = [[ResourceManager resources].scene getCamera:0];
+    
+    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+                                                 cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
+                                                 0.0f, 1.0f, 0.0f);
+        
     for (int i = 0; i < _instances.size(); i++)
     {
         GLKMatrix4 modelMatrix = _instances[i].model;
-        GLKMatrix4 modelViewMatrix = GLKMatrix4Multiply(modelView, _instances[i].model);
+        GLKMatrix4 modelViewMatrix = GLKMatrix4Multiply(viewMatrix, modelMatrix);
         
         GLuint _program = [_instances[i].mesh getProgram];
         GLuint _VAO = [_instances[i].mesh getVAO];
@@ -47,14 +54,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
         glBindVertexArrayOES( _VAO );
         
         glUseProgram( _program );
-        
-        Light *light = [[ResourceManager resources].scene getLight:0];
-        Camera *cam = [[ResourceManager resources].scene getCamera:0];
-        
-        GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
-                                                     cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
-                                                     0.0f, 1.0f, 0.0f);
-        
+     
         GLint matM = glGetUniformLocation(_program, "u_m");
         glUniformMatrix4fv(matM, 1, GL_FALSE, modelMatrix.m);
         

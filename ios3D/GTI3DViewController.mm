@@ -158,7 +158,6 @@
 -(void)Scale:(UITapGestureRecognizer*)sender
 {
     
-
     CGFloat scale = _lastScale + (1.0 - [(UIPinchGestureRecognizer*)sender scale])*ZOOMTOUCHSENSITIVITY;
 
     float newScale = MAX(0.1, MIN(scale, 3));
@@ -183,25 +182,17 @@
     CGPoint location = [touch locationInView:touch.view];
 
     //translated
-    GLKMatrix4 movedModel = GLKMatrix4Translate([ResourceManager resources].sceneModelMatrix, 0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0);
+    Camera *cam = [[ResourceManager resources].scene getCamera:0];
+    cam.position = GLKVector3Add(cam.position, GLKVector3Make(0, (_yTouchLoc-location.y)*PANTOUCHSENSITIVITY, 0));
     
-    //add rotation scene model
-    GLKMatrix4 rotatedSceneModel = GLKMatrix4RotateY(movedModel, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY);
-
-    //set
-    [ResourceManager resources].sceneModelMatrix = rotatedSceneModel;
+    //rotate whole scene
+    //GLKMatrix4 rotatedSceneModel = GLKMatrix4RotateY([ResourceManager resources].sceneModelMatrix, (location.x-_xTouchLoc)*ROTATETOUCHSENSITIVITY);
+    //[ResourceManager resources].sceneModelMatrix = rotatedSceneModel;
     
-    //get view matrix - needs to be optimized!
-    self.currentScene = [ResourceManager resources].scene;
-    Camera *cam = [self.currentScene getCamera:0];
-    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
-                                                 cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
-                                                 0.0f, 1.0f, 0.0f);
-    
-    //multiply for final matrix to be passed to renderer
-    _modelViewMatrix = GLKMatrix4Multiply(viewMatrix, [ResourceManager resources].sceneModelMatrix);
-    
-    
+    //rotate camera ***around origin***
+    GLKMatrix4 rotationMatrix = GLKMatrix4RotateY(GLKMatrix4Identity, (_xTouchLoc-location.x)*ROTATETOUCHSENSITIVITY);
+    cam.position = GLKMatrix4MultiplyVector3(rotationMatrix, cam.position);
+        
     _xTouchLoc = location.x;
     _yTouchLoc = location.y;    	
 }
@@ -209,27 +200,25 @@
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    // Clear the screen
-    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-
-    
     //time set
     CFTimeInterval previousTimestamp = CFAbsoluteTimeGetCurrent();
     
-    //parse the scene
-    [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
+    // Clear the screen
+    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
     
-    [[Renderer renderer] renderAllWithMV:_modelViewMatrix P:_projectionMatrix];
+    //parse the scene to add to render queue
+    [self.currentScene renderWithModel:[ResourceManager resources].sceneModelMatrix];
+    
+    //Render!
+    [[Renderer renderer] renderAllWithProjection:_projectionMatrix];
     
     //clear the render queue
     [[Renderer renderer] clearInstances];
     
     //time measure
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
-
-
-    [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
+    self.performanceLabel.text =  [NSString stringWithFormat:@"Frame duration: %f ms. Triangles: %i",
                                   frameDuration * 1000.0,
                                   [ResourceManager resources].totalTris];
     

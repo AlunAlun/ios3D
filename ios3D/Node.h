@@ -14,10 +14,15 @@
 
 @property (assign) GLKVector3 position;
 @property (strong) NSMutableArray * children;
-@property (assign) float rotation;
+@property (assign) float rotationX;
+@property (assign) float rotationY;
+@property (assign) float rotationZ;
 @property (assign) float scale;
 @property (strong) NSString *name;
 
+
+- (void)renderWithModel:(GLKMatrix4)modelMatrix;
+- (GLKMatrix4)getModelMatrix;
 
 - (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix;
 - (void)update:(float)dt;

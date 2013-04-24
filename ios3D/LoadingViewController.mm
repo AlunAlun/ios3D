@@ -120,6 +120,7 @@
     avatarMat.shininess = 50.0;
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
+    //avatarMesh.rotationZ = 45.0;
      
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDiffuseTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
@@ -146,8 +147,8 @@
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:avatarMesh];
-    [[ResourceManager resources].scene addChild:shirtMesh];
-    [[ResourceManager resources].scene addChild:skirtMesh];
+    [avatarMesh addChild:shirtMesh];
+    [avatarMesh addChild:skirtMesh];
     [[ResourceManager resources].scene addChild:floorMesh];
     
     // Call completion handler - this performs the segue and loads 3D view

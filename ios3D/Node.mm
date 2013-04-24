@@ -12,7 +12,9 @@
 @implementation Node
 @synthesize position = _position;
 @synthesize children = _children;
-@synthesize rotation = _rotation;
+@synthesize rotationX = _rotationX;
+@synthesize rotationY = _rotationY;
+@synthesize rotationZ = _rotationZ;
 @synthesize scale = _scale;
 @synthesize name = _name;
 
@@ -20,23 +22,42 @@
     if ((self = [super init])) {
         self.children = [NSMutableArray array];
         self.scale = 1.0;
-        self.rotation = 0;
+        self.rotationX = 0;
+        self.rotationY = 0;
+        self.rotationZ = 0;
         self.position = GLKVector3Make(0,0,0);
         self.name = @"node";
     }
     return self;
 }
 
-- (void)renderWithMV:(GLKMatrix4)modelViewMatrix P:(GLKMatrix4)projectionMatrix;
+- (GLKMatrix4)getModelMatrix
+{
+    GLKMatrix4 modelMatrix = GLKMatrix4Identity;
+    
+    //translate
+    modelMatrix = GLKMatrix4Translate(modelMatrix, self.position.x, self.position.y, self.position.z);
+    
+    //rotate
+    float radians = GLKMathDegreesToRadians(self.rotationX);
+    modelMatrix = GLKMatrix4RotateX(modelMatrix, radians);
+    radians = GLKMathDegreesToRadians(self.rotationY);
+    modelMatrix = GLKMatrix4RotateY(modelMatrix, radians);
+    radians = GLKMathDegreesToRadians(self.rotationZ);
+    modelMatrix = GLKMatrix4RotateZ(modelMatrix, radians);
+
+    //scale
+    modelMatrix = GLKMatrix4Scale(modelMatrix, self.scale, self.scale, self.scale);
+    return modelMatrix;
+}
+
+- (void)renderWithModel:(GLKMatrix4)modelMatrix
 {
     //we're not rendering here because it will be subclassed
-    // ALL SUBCLASSES MUST CALL [super renderWithMV P]
-    
-    //move this node to it's stored position
-    GLKMatrix4 childModelViewMatrix = GLKMatrix4Multiply(modelViewMatrix, [self modelMatrix:NO]);
-    //vamos a renderizar todos los hijos
+    // ALL SUBCLASSES MUST CALL [super renderWithModel]
+    GLKMatrix4 childModelMatrix = GLKMatrix4Multiply(modelMatrix, [self getModelMatrix]);
     for (Node * node in self.children) {
-        [node renderWithMV:childModelViewMatrix P:projectionMatrix];
+        [node renderWithModel:childModelMatrix];
     }
 }
 
@@ -44,6 +65,8 @@
 {
     
 }
+                                                         
+                                                         
 - (GLKMatrix4) modelMatrix:(BOOL)renderingSelf
 {
     //cargar identity matrix
