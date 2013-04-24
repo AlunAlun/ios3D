@@ -10,7 +10,7 @@
 
 @interface ShaderLoader : NSObject
 
-- (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType;
--(GLuint)createProgramWithVertex:(NSString*)vertex Fragment:(NSString*)fragment;
+- (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType Flags:(NSArray*)flags;
+-(GLuint)createProgramWithVertex:(NSString*)vertex Fragment:(NSString*)fragment Flags:(NSArray*)flags;
 
 @end

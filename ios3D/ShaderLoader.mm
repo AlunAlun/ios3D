@@ -11,12 +11,18 @@
 
 @implementation ShaderLoader
 
-- (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType
+- (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType Flags:(NSArray*)flags
 {
     // Load the shader in memory
     NSString *shaderPath = [[NSBundle mainBundle] pathForResource:shaderName ofType:@"glsl"];
     NSError *error;
-    NSString *shaderString = [NSString stringWithContentsOfFile:shaderPath encoding:NSUTF8StringEncoding error:&error];
+    NSString *shaderPreString = [NSString stringWithContentsOfFile:shaderPath encoding:NSUTF8StringEncoding error:&error];
+    
+    //add flags at start of each shaderstring
+    NSString *preDefines = [flags componentsJoinedByString:@"\n #define "];
+    
+    NSString *shaderString = [NSString stringWithFormat:@"#define %@\n %@",preDefines, shaderPreString];
+    
     if(!shaderString)
     {
         NSLog(@"Error loading shader: %@", error.localizedDescription);
@@ -53,11 +59,11 @@
     return shaderHandle;
 }
 
--(GLuint)createProgramWithVertex:(NSString*)vertex Fragment:(NSString*)fragment
+-(GLuint)createProgramWithVertex:(NSString*)vertex Fragment:(NSString*)fragment Flags:(NSArray*)flags
 {
     // Compile both shaders
-    GLuint vertexShader = [self compileShader:vertex withType:GL_VERTEX_SHADER];
-    GLuint fragmentShader = [self compileShader:fragment withType:GL_FRAGMENT_SHADER];
+    GLuint vertexShader = [self compileShader:vertex withType:GL_VERTEX_SHADER Flags:flags];
+    GLuint fragmentShader = [self compileShader:fragment withType:GL_FRAGMENT_SHADER Flags:flags];
     
     // Create the program in openGL, attach the shaders and link them
     GLuint programHandle = glCreateProgram();

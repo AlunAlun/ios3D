@@ -1,3 +1,5 @@
+
+
 // Vertex Shader
 precision highp float;
 
@@ -16,6 +18,11 @@ varying highp vec3 v_light_dir;
 varying highp vec3 v_normal;
 varying highp vec3 v_pos;
 
+#if defined (USE_DIFFUSE_TEXTURE) | defined (USE_DETAIL_TEXTURE)
+attribute mediump vec2 a_vertexTexCoord0;
+varying mediump vec2 v_fragmentTexCoord0;
+#endif
+
 void main(void)
 {
     /* world space lighting */
@@ -28,4 +35,8 @@ void main(void)
 
     /* Transform the positions from eye coordinates to clip coordinates */
     gl_Position = u_p * vec4(position, 1.0);
+    
+#ifdef USE_DIFFUSE_TEXTURE
+    v_fragmentTexCoord0 = a_vertexTexCoord0;
+#endif
 }

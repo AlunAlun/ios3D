@@ -68,8 +68,28 @@
     //Init Objects and Materials
     //Compile Shaders
     ShaderLoader *loader = [[ShaderLoader alloc] init];
-    GLuint shaderDetailTexture = [loader createProgramWithVertex:@"ShaderDetailTextureVertex" Fragment:@"ShaderDetailTextureFragment"];
-    GLuint shaderPhong = [loader createProgramWithVertex:@"ShaderPhongVertex" Fragment:@"ShaderPhongFragment"];
+    
+    //Straight phong
+    NSArray *flags = [[NSArray alloc] initWithObjects:
+                      @"USE_SPOT_LIGHT",
+                      nil];
+    GLuint shaderPhong  = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
+    
+    
+    //Diffuse Texture
+    flags = [[NSArray alloc] initWithObjects:
+             @"USE_DIFFUSE_TEXTURE",
+             @"USE_SPOT_LIGHT",
+             nil];
+    GLuint shaderDiffuseTexture = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
+    
+    //Diffuse Detail Texture
+    flags = [[NSArray alloc] initWithObjects:
+             @"USE_DIFFUSE_TEXTURE",
+             @"USE_SPOT_LIGHT",
+             @"USE_DETAIL_TEXTURE",
+             nil];
+    GLuint shaderDetailTexture = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
     
     
     //create nodes
@@ -84,8 +104,8 @@
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    light.position = GLKVector3Make(-100.0, 200.0, 300.0); // nice light
-    light.direction = GLKVector3Make(1.0,-1.0,-3.0);
+    light.position = GLKVector3Make(-100.0, 300.0, 300.0); // nice light
+    light.direction = GLKVector3Make(1.0,-1.5,-3.0);
     light.spotCosCutoff = 0.9;
     light.intensity = 1.0;
     light.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
@@ -101,25 +121,23 @@
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
      
-    
-    /*
-    Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDetailTexture];
+    Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDiffuseTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
-    */
-   /*
+    
+   
     Material *skirtMat = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg" andProgram:shaderDetailTexture];
     [skirtMat loadDetailTexture:@"detail_jeans" ofType:@"png"];
     Mesh *skirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"skirt.obj" withMaterial:skirtMat];
     skirtMesh.name = @"Skirt";
-     */
+     
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
     floorMat.diffuse = GLKVector4Make(0.4, 0.4, 0.4, 1.0);
     floorMat.ambient = GLKVector4Make(0.3, 0.3, 0.3, 1.0);
     floorMat.specular = 0.0;
     Mesh *floorMesh = [ResourceManager WaveFrontOBJLoadMesh:@"floor.obj" withMaterial:floorMat];
-
+    floorMesh.scale = 10.0f;
     floorMesh.name = @"Floor";
      
     
@@ -128,8 +146,8 @@
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:avatarMesh];
-    //[[ResourceManager resources].scene addChild:shirtMesh];
-    //[[ResourceManager resources].scene addChild:skirtMesh];
+    [[ResourceManager resources].scene addChild:shirtMesh];
+    [[ResourceManager resources].scene addChild:skirtMesh];
     [[ResourceManager resources].scene addChild:floorMesh];
     
     // Call completion handler - this performs the segue and loads 3D view

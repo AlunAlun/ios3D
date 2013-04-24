@@ -9,6 +9,7 @@
 #import "Mesh.h"
 #import "ResourceManager.h"
 #import "Light.h"
+#import "Renderer.h"
 
 
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
@@ -24,6 +25,12 @@
 }
 
 @synthesize material;
+
+-(GLuint)getProgram{return _program;}
+-(GLuint)getVerticesVBO{return _verticesVBO;}
+-(GLuint)getIndicesVBO{return _indicesVBO;}
+-(GLuint)getVAO{return _VAO;}
+-(GLuint)getIndexBufferSize{return _indexBufferSize;}
 
 -(id)initWithDataBuffer:(std::vector<GLfloat>)db indexBuffer:(std::vector<GLuint>)ib material:(Material *)mat;
 {
@@ -103,16 +110,20 @@
 
     GLKMatrix4 modelMatrix = [self modelMatrix:YES];
     
+    RenderInstance ri;
+    ri.mesh = self;
+    ri.mat = self.material;
+    ri.model = modelMatrix;
+    [[Renderer renderer] addInstance:ri];
+    
+    /*
     //apply all transformations
     modelViewMatrix = GLKMatrix4Multiply(modelViewMatrix, modelMatrix);
     
     // Bind the VAO and the program
     glBindVertexArrayOES( _VAO );
-
-    
-    
+   
     glUseProgram( _program );
-    
     
     Light *light = [[ResourceManager resources].scene getLight:0];
     Camera *cam = [[ResourceManager resources].scene getCamera:0];
@@ -213,7 +224,7 @@
     // Draw!
     glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
     
-    
+    */
 }
 
 @end

@@ -16,6 +16,11 @@
 
 
 -(id)initWithDataBuffer:(std::vector<GLfloat>)db indexBuffer:(std::vector<GLuint>)ib material:(Material*)mat;
+-(GLuint)getProgram;
+-(GLuint)getVerticesVBO;
+-(GLuint)getIndicesVBO;
+-(GLuint)getVAO;
+-(GLuint)getIndexBufferSize;
 
 
 @end

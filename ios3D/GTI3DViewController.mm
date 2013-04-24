@@ -20,6 +20,7 @@
 #import "ShaderLoader.h"
 #import "Camera.h"
 #import "ResourceManager.h"
+#import "Renderer.h"
 
 @interface GTI3DViewController () {
     
@@ -218,6 +219,11 @@
     
     //parse the scene
     [self.currentScene renderWithMV:_modelViewMatrix P:_projectionMatrix];
+    
+    [[Renderer renderer] renderAllWithMV:_modelViewMatrix P:_projectionMatrix];
+    
+    //clear the render queue
+    [[Renderer renderer] clearInstances];
     
     //time measure
     CFTimeInterval frameDuration = CFAbsoluteTimeGetCurrent() - previousTimestamp;
