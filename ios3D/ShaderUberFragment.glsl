@@ -72,5 +72,10 @@ void main(void)
 #endif
     
     gl_FragColor = finalColor ;
+    
+#ifdef SHADOWMAP
+    gl_FragColor.rgb=vec3(pow(gl_FragCoord.z,5.0));
+#endif
+
 
 }

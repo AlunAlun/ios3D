@@ -17,11 +17,15 @@
     NSString *shaderPath = [[NSBundle mainBundle] pathForResource:shaderName ofType:@"glsl"];
     NSError *error;
     NSString *shaderPreString = [NSString stringWithContentsOfFile:shaderPath encoding:NSUTF8StringEncoding error:&error];
-    
+    NSString *shaderString;
+    if ([flags count] > 0){
     //add flags at start of each shaderstring
-    NSString *preDefines = [flags componentsJoinedByString:@"\n #define "];
+        NSString *preDefines = [flags componentsJoinedByString:@"\n #define "];
     
-    NSString *shaderString = [NSString stringWithFormat:@"#define %@\n %@",preDefines, shaderPreString];
+        shaderString = [NSString stringWithFormat:@"#define %@\n %@",preDefines, shaderPreString];
+    }
+    else
+        shaderString = shaderPreString;
     
     if(!shaderString)
     {

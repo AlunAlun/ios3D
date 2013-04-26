@@ -18,6 +18,10 @@ varying highp vec3 v_light_dir;
 varying highp vec3 v_normal;
 varying highp vec3 v_pos;
 
+#ifdef SHADOWMAP
+uniform highp mat4 u_depthP;
+#endif
+
 #if defined (USE_DIFFUSE_TEXTURE) | defined (USE_DETAIL_TEXTURE)
 attribute mediump vec2 a_vertexTexCoord0;
 varying mediump vec2 v_fragmentTexCoord0;
@@ -38,5 +42,9 @@ void main(void)
     
 #ifdef USE_DIFFUSE_TEXTURE
     v_fragmentTexCoord0 = a_vertexTexCoord0;
+#endif
+    
+#ifdef SHADOWMAP
+    gl_Position = u_depthP * vec4(position, 1.0);
 #endif
 }

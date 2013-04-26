@@ -104,9 +104,9 @@
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    light.position = GLKVector3Make(-100.0, 300.0, 300.0); // nice light
-    light.direction = GLKVector3Make(1.0,-1.5,-3.0);
-    light.spotCosCutoff = 0.9;
+    light.position = GLKVector3Make(-100.0, 500.0, 150.0); // nice light
+    light.direction = GLKVector3Make(0.5,-1.5,-0.5);
+    light.spotCosCutoff = 0.93;
     light.intensity = 1.0;
     light.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
     light.ambientColor = GLKVector3Make(1.0, 1.0, 1.0);
@@ -120,7 +120,7 @@
     avatarMat.shininess = 50.0;
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
-    //avatarMesh.rotationZ = 45.0;
+    //avatarMesh.rotationZ = 90.0;
      
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDiffuseTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
@@ -134,11 +134,12 @@
      
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
-    floorMat.diffuse = GLKVector4Make(0.4, 0.4, 0.4, 1.0);
+    floorMat.diffuse = GLKVector4Make(0.6, 0.6, 0.6, 1.0);
     floorMat.ambient = GLKVector4Make(0.3, 0.3, 0.3, 1.0);
     floorMat.specular = 0.0;
     Mesh *floorMesh = [ResourceManager WaveFrontOBJLoadMesh:@"floor.obj" withMaterial:floorMat];
     floorMesh.scale = 10.0f;
+    floorMesh.rotationX = 0.0;
     floorMesh.name = @"Floor";
      
     

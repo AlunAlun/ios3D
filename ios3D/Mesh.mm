@@ -53,14 +53,15 @@
         _indexBufferSize = ib.size();
         
         // **************************************************
-        // ***** Fill OpenGL Buffers
+        // ***** Fill OpenGL Buffers VBOs are referenced by VAO
         // **************************************************
         
         // Make the vertex buffer
 
-        glGenBuffers( 1, &_verticesVBO );
-        glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
-        glBufferData( GL_ARRAY_BUFFER, sizeof(dataBuffer), dataBuffer, GL_STATIC_DRAW );
+        glGenBuffers( 1, &_verticesVBO ); //generate a valid name for buffer
+        glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO ); //bind buffer to context
+        //load onto graphics card memory - we can delete dataBuffer forthwith, if we want!
+        glBufferData( GL_ARRAY_BUFFER, sizeof(dataBuffer), dataBuffer, GL_STATIC_DRAW ); 
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
         
         // Make the indices buffer
@@ -75,6 +76,7 @@
         glGenVertexArraysOES( 1, &_VAO );
         glBindVertexArrayOES( _VAO );
         
+        //Bind the VBO to the context why here?
         glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
         
         //Vert positions
@@ -95,6 +97,7 @@
             glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
         }
         
+        //Why is this here??
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
         
         glBindVertexArrayOES( 0 );
