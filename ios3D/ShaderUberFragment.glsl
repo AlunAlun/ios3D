@@ -28,7 +28,16 @@ varying mediump vec2 v_fragmentTexCoord0;
 uniform sampler2D u_detailSampler;
 #endif
 
+varying highp vec4 v_shadowCoord;
+uniform sampler2D u_shadowMap;
+
 const float cos_outer_cone_angle = 0.8; // 36 degrees
+
+float UnpackDepth32(vec4 depth)
+{
+    const vec4 bitShifts = vec4( 1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1);
+    return dot(depth.xyzw , bitShifts);
+}
 
 void main(void)
 {
@@ -71,11 +80,62 @@ void main(void)
     finalColor += (texture2D(u_detailSampler, detailTexCoord)-vec4(0.5))*0.3; //change effect of detail tex //ADD UNIFORM
 #endif
     
-    gl_FragColor = finalColor ;
     
-#ifdef SHADOWMAP
-    gl_FragColor.rgb=vec3(pow(gl_FragCoord.z,5.0));
-#endif
+    
+    float bias = 0.005;
+    float visibility = 1.0;
+
+    
+    
+    
+    /*
+    vec2 sample = (v_shadowCoord.xy / v_shadowCoord.w) * vec2(0.5) + vec2(0.5);
+    float shadow = 0.0;
+    float depth = 0.0;
+    
+    text
+    
+    
+    if (depth > 0.0) {
+        float bias = 0.0;   //-1.0;
+        shadow = clamp(30000.0 * (bias + v_shadowCoord.z / v_shadowCoord.w * 0.5 + 0.5 - depth), 0.0, 1.0);
+    }
+    visibility = 1.0 - shadow;
+    */
+    
+    float a[5];
+    a = float[](3.4, 4.2, 5.0, 5.2, 1.1);
+    highp vec2 poissonDisk[4] = vec2[4](vec2( -0.94201624, -0.39906216 ),
+                                       vec2( 0.94558609, -0.76890725 ),
+                                       vec2( -0.094184101, -0.92938870 ),
+                                       vec2( 0.34495938, 0.29387760 ));
+    
+
+    highp vec2 sample = v_shadowCoord.xy;
+    float sampleDepth = texture2D( u_shadowMap, sample ).z;
+    float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
+    
+    //if ( texture2D( u_shadowMap, v_shadowCoord.xy ).z  <  v_shadowCoord.z-bias)
+    if (depth < v_shadowCoord.z-bias)
+    {
+        visibility -= 0.1;
+    }
+
+    highp vec2 sample = v_shadowCoord.xy;
+    float sampleDepth = texture2D( u_shadowMap, sample ).z;
+    float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
+
+    if (depth < v_shadowCoord.z-bias)
+    {
+        visibility = 0.5;
+    }
+
+    
+    finalColor *= visibility;
+    
+    gl_FragColor = finalColor ;
+
+
 
 
 }

@@ -19,8 +19,11 @@ varying highp vec3 v_normal;
 varying highp vec3 v_pos;
 
 #ifdef SHADOWMAP
-uniform highp mat4 u_depthP;
+
 #endif
+
+uniform highp mat4 u_depthBiasMVP;
+varying highp vec4 v_shadowCoord;
 
 #if defined (USE_DIFFUSE_TEXTURE) | defined (USE_DETAIL_TEXTURE)
 attribute mediump vec2 a_vertexTexCoord0;
@@ -37,6 +40,9 @@ void main(void)
     highp mat4 tmp_mv = u_v * u_m;
     highp vec3 position = vec3(u_mv * vec4(a_vertex, 1.0));
 
+    //v_shadowCoord = (u_depthBiasMVP * vec4(a_vertex, 1.0)).xyz;
+    v_shadowCoord = u_depthBiasMVP * vec4(a_vertex, 1.0);
+    
     /* Transform the positions from eye coordinates to clip coordinates */
     gl_Position = u_p * vec4(position, 1.0);
     
@@ -44,7 +50,5 @@ void main(void)
     v_fragmentTexCoord0 = a_vertexTexCoord0;
 #endif
     
-#ifdef SHADOWMAP
-    gl_Position = u_depthP * vec4(position, 1.0);
-#endif
+
 }

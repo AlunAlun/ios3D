@@ -51,11 +51,7 @@
             indexBuffer[i] = ib[i];
 
         _indexBufferSize = ib.size();
-        
-        // **************************************************
-        // ***** Fill OpenGL Buffers VBOs are referenced by VAO
-        // **************************************************
-        
+                
         // Make the vertex buffer
 
         glGenBuffers( 1, &_verticesVBO ); //generate a valid name for buffer
@@ -70,38 +66,8 @@
         glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBuffer), indexBuffer, GL_STATIC_DRAW );
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
         
-        // Bind the attribute pointers to the VAO
-        GLint attribute;
-        GLsizei stride = sizeof(GLfloat) * 8; // 3 vert, 3 normal, 2 texture
+        //Generate the Vertex array at address of _VAO
         glGenVertexArraysOES( 1, &_VAO );
-        glBindVertexArrayOES( _VAO );
-        
-        //Bind the VBO to the context why here?
-        glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
-        
-        //Vert positions
-        attribute = glGetAttribLocation(_program, "a_vertex");
-        glEnableVertexAttribArray( attribute );
-        glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, NULL );
-        
-        // Give the normals to GL to pass them to the shader
-        // We will have to add the VertexNormal attribute in the shader
-        attribute = glGetAttribLocation(_program, "a_normal");
-        glEnableVertexAttribArray( attribute );
-        glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*3/8 ) );
-
-        //check we have a texture coord in our shader
-        if((attribute = glGetAttribLocation(_program, "a_vertexTexCoord0")) != -1)
-        {
-            glEnableVertexAttribArray( attribute );
-            glVertexAttribPointer( attribute, 2, GL_FLOAT, GL_FALSE, stride, BUFFER_OFFSET( stride*6/8 ) );
-        }
-        
-        //Why is this here??
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _indicesVBO );
-        
-        glBindVertexArrayOES( 0 );
-         
 
     }
     return self;

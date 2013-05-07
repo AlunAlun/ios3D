@@ -71,7 +71,7 @@
     
     //Straight phong
     NSArray *flags = [[NSArray alloc] initWithObjects:
-                      @"USE_SPOT_LIGHT",
+                      //@"USE_SPOT_LIGHT",
                       nil];
     GLuint shaderPhong  = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
     
@@ -79,14 +79,14 @@
     //Diffuse Texture
     flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
-             @"USE_SPOT_LIGHT",
+             //@"USE_SPOT_LIGHT",
              nil];
     GLuint shaderDiffuseTexture = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
     
     //Diffuse Detail Texture
     flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
-             @"USE_SPOT_LIGHT",
+             //@"USE_SPOT_LIGHT",
              @"USE_DETAIL_TEXTURE",
              nil];
     GLuint shaderDetailTexture = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
@@ -104,8 +104,10 @@
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    light.position = GLKVector3Make(-100.0, 500.0, 150.0); // nice light
-    light.direction = GLKVector3Make(0.5,-1.5,-0.5);
+    light.position = GLKVector3Make(-300.0, 500.0, 150.0); // nice light
+    light.direction = GLKVector3Make(1.0,-1.6,-0.8);
+    //light.position = GLKVector3Make(0.0, 500.0, 0.0);
+    //light.direction = GLKVector3Make(0.0,-1.0,0.0);
     light.spotCosCutoff = 0.93;
     light.intensity = 1.0;
     light.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
@@ -122,9 +124,13 @@
     avatarMesh.name = @"Avatar";
     //avatarMesh.rotationZ = 90.0;
      
+     
+     
+     
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDiffuseTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
+    //shirtMesh.position = GLKVector3Make(-50.0, 0.0, 50.0);
     
    
     Material *skirtMat = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg" andProgram:shaderDetailTexture];
@@ -147,10 +153,13 @@
     [ResourceManager resources].scene = [[Scene alloc] initWitName:@"Body Scene"];
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
+    [[ResourceManager resources].scene addChild:shirtMesh];
+    
     [[ResourceManager resources].scene addChild:avatarMesh];
-    [avatarMesh addChild:shirtMesh];
+    //[avatarMesh addChild:shirtMesh];
     [avatarMesh addChild:skirtMesh];
     [[ResourceManager resources].scene addChild:floorMesh];
+     
     
     // Call completion handler - this performs the segue and loads 3D view
     int result = 1;
