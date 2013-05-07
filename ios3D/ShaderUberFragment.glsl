@@ -1,4 +1,4 @@
-
+#extension GL_EXT_shadow_samplers : require
 
 // Fragment shader
 precision highp float;
@@ -28,16 +28,29 @@ varying mediump vec2 v_fragmentTexCoord0;
 uniform sampler2D u_detailSampler;
 #endif
 
+#if defined (USE_HARD_SHADOWS) | defined (USE_SOFT_SHADOWS)
 varying highp vec4 v_shadowCoord;
 uniform sampler2D u_shadowMap;
+#endif
 
 const float cos_outer_cone_angle = 0.8; // 36 degrees
 
-float UnpackDepth32(vec4 depth)
+
+#if defined (USE_HARD_SHADOWS) | defined (USE_SOFT_SHADOWS)
+float getShadow(vec2 coords)	
 {
-    const vec4 bitShifts = vec4( 1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1);
-    return dot(depth.xyzw , bitShifts);
+    float bias = 0.005;
+    highp vec2 sample = v_shadowCoord.xy + coords/500.0;
+    float sampleDepth = texture2D( u_shadowMap, sample ).z;
+    //float sampleDepth = shadow2DEXT(u_shadowMap, v_shadowCoord.xyz);
+    float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
+    
+    if (depth < v_shadowCoord.z-bias)
+        return 0.1;
+    else
+        return 0.0;
 }
+#endif
 
 void main(void)
 {
@@ -81,57 +94,24 @@ void main(void)
 #endif
     
     
-    
+    float shadow = 1.0;
+#ifdef USE_HARD_SHADOWS
     float bias = 0.005;
-    float visibility = 1.0;
-
-    
-    
-    
-    /*
-    vec2 sample = (v_shadowCoord.xy / v_shadowCoord.w) * vec2(0.5) + vec2(0.5);
-    float shadow = 0.0;
-    float depth = 0.0;
-    
-    text
-    
-    
-    if (depth > 0.0) {
-        float bias = 0.0;   //-1.0;
-        shadow = clamp(30000.0 * (bias + v_shadowCoord.z / v_shadowCoord.w * 0.5 + 0.5 - depth), 0.0, 1.0);
-    }
-    visibility = 1.0 - shadow;
-    */
-    
-    float a[5];
-    a = float[](3.4, 4.2, 5.0, 5.2, 1.1);
-    highp vec2 poissonDisk[4] = vec2[4](vec2( -0.94201624, -0.39906216 ),
-                                       vec2( 0.94558609, -0.76890725 ),
-                                       vec2( -0.094184101, -0.92938870 ),
-                                       vec2( 0.34495938, 0.29387760 ));
-    
-
     highp vec2 sample = v_shadowCoord.xy;
     float sampleDepth = texture2D( u_shadowMap, sample ).z;
     float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
-    
-    //if ( texture2D( u_shadowMap, v_shadowCoord.xy ).z  <  v_shadowCoord.z-bias)
     if (depth < v_shadowCoord.z-bias)
-    {
-        visibility -= 0.1;
-    }
-
-    highp vec2 sample = v_shadowCoord.xy;
-    float sampleDepth = texture2D( u_shadowMap, sample ).z;
-    float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
-
-    if (depth < v_shadowCoord.z-bias)
-    {
-        visibility = 0.5;
-    }
-
+        shadow = 0.5;
+#endif
     
-    finalColor *= visibility;
+#ifdef USE_SOFT_SHADOWS
+    shadow -= getShadow(vec2( -0.94201624, -0.39906216 ));
+    shadow -= getShadow(vec2( 0.94558609, -0.76890725 ));
+    shadow -= getShadow(vec2( -0.094184101, -0.92938870 ));
+    shadow -= getShadow(vec2( 0.34495938, 0.29387760 ));
+#endif
+    
+    finalColor *= shadow;
     
     gl_FragColor = finalColor ;
 

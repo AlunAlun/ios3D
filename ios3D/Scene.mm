@@ -22,11 +22,12 @@
 @end
 
 @implementation Scene
-@synthesize textures;
+@synthesize textures, materials, objects, backgroundColor;
 
 - (id)initWitName:(NSString*)name {
     if ((self = [super init])) {
         self.name = name;
+        backgroundColor = GLKVector3Make(1.0, 1.0, 1.0);
     }
     return self;
 }

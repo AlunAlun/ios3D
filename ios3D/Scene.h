@@ -12,6 +12,8 @@
 
 @interface Scene : Node
 
+@property(assign) GLKVector3 backgroundColor;
+
 - (id)initWitName:(NSString*)name;
 - (Camera*)getCamera:(int)camId;
 - (Light*)getLight:(int)lightId;

@@ -226,7 +226,8 @@ static Renderer *renderSingleton = nil;    // static instance variable
      /* START SCREEN BUFFER */   
     glBindFramebufferOES(GL_FRAMEBUFFER_OES, 1);
     glViewport(0, 0, 1024, 768);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    GLKVector3 c = [ResourceManager resources].scene.backgroundColor;
+    glClearColor(c.x, c.y, c.z, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
     glCullFace(GL_BACK);
     //DRAW INSTANCES

@@ -71,6 +71,7 @@
     
     //Straight phong
     NSArray *flags = [[NSArray alloc] initWithObjects:
+                      @"USE_SOFT_SHADOWS",
                       //@"USE_SPOT_LIGHT",
                       nil];
     GLuint shaderPhong  = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
@@ -79,6 +80,7 @@
     //Diffuse Texture
     flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
+             @"USE_HARD_SHADOWS",
              //@"USE_SPOT_LIGHT",
              nil];
     GLuint shaderDiffuseTexture = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
@@ -86,6 +88,7 @@
     //Diffuse Detail Texture
     flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
+             //@"USE_HARD_SHADOWS",
              //@"USE_SPOT_LIGHT",
              @"USE_DETAIL_TEXTURE",
              nil];
@@ -140,9 +143,10 @@
      
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
-    floorMat.diffuse = GLKVector4Make(0.6, 0.6, 0.6, 1.0);
-    floorMat.ambient = GLKVector4Make(0.3, 0.3, 0.3, 1.0);
-    floorMat.specular = 0.0;
+    floorMat.diffuse = GLKVector4Make(0.65, 0.65, 0.65, 1.0);
+    floorMat.ambient = GLKVector4Make(1.0, 1.0, 1.0, 1.0);
+    floorMat.specular = 0.1;
+    floorMat.shininess = 10.0;
     Mesh *floorMesh = [ResourceManager WaveFrontOBJLoadMesh:@"floor.obj" withMaterial:floorMat];
     floorMesh.scale = 10.0f;
     floorMesh.rotationX = 0.0;
@@ -151,6 +155,7 @@
     
     //Init scene and add objects to graph
     [ResourceManager resources].scene = [[Scene alloc] initWitName:@"Body Scene"];
+    [ResourceManager resources].scene.backgroundColor = GLKVector3Make(0.89, 0.89, 0.87);
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:shirtMesh];
