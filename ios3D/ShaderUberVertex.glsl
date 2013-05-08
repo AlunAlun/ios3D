@@ -14,7 +14,6 @@ uniform highp mat3 u_normal_model;
 attribute highp vec3 a_vertex;
 attribute highp vec3 a_normal;
 
-varying highp vec3 v_light_dir;
 varying highp vec3 v_normal;
 varying highp vec3 v_pos;
 

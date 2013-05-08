@@ -10,9 +10,11 @@
 
 @interface Light : Node
 
-@property(assign) GLKVector3 direction;
+@property(assign) GLKVector3 target;
 @property(assign) GLfloat spotCosCutoff;
 @property(assign) GLfloat intensity;
+@property(assign) GLfloat near;
+@property(assign) GLfloat far;
 @property(assign) GLKVector3 diffuseColor;
 @property(assign) GLKVector3 ambientColor;
 @property(assign) GLKVector3 specularColor;

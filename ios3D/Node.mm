@@ -15,6 +15,7 @@
 @synthesize rotationX = _rotationX;
 @synthesize rotationY = _rotationY;
 @synthesize rotationZ = _rotationZ;
+@synthesize rotation = _rotation;
 @synthesize scale = _scale;
 @synthesize name = _name;
 
@@ -26,6 +27,7 @@
         self.rotationY = 0;
         self.rotationZ = 0;
         self.position = GLKVector3Make(0,0,0);
+        self.rotation = GLKQuaternionMake(0.0,0.0,0.0,1.0);
         self.name = @"node";
     }
     return self;
@@ -45,6 +47,9 @@
     modelMatrix = GLKMatrix4RotateY(modelMatrix, radians);
     radians = GLKMathDegreesToRadians(self.rotationZ);
     modelMatrix = GLKMatrix4RotateZ(modelMatrix, radians);
+    
+    GLKMatrix4 rotMatrix = GLKMatrix4MakeWithQuaternion(self.rotation);
+    modelMatrix = GLKMatrix4Multiply(rotMatrix, modelMatrix);
 
     //scale
     modelMatrix = GLKMatrix4Scale(modelMatrix, self.scale, self.scale, self.scale);
@@ -99,6 +104,13 @@
 - (void)handleTouchUp:(CGPoint)touchLocation{
     
 }
+
+/*- (void)setRotation:(GLKQuaternion)rotVector
+{
+    self.rotationX = rotVector.x;
+    self.rotationY = rotVector.y;
+    self.rotationZ = rotVector.z;
+}*/
 
 - (void)dealloc
 {

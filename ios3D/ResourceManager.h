@@ -17,6 +17,8 @@
 }
 
 @property (nonatomic, strong) EAGLContext *context;
+@property (assign) int screenWidth;
+@property (assign) int screenHeight;
 @property (nonatomic, strong) Scene *scene;
 @property (nonatomic, strong) NSMutableArray *sceneNodes;
 @property (nonatomic, strong) NSMutableArray *textures;

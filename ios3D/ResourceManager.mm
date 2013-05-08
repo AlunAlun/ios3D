@@ -14,7 +14,7 @@
 #include <vector>
 
 @implementation ResourceManager
-@synthesize scene, materials, textures, totalTris, sceneNodes, context, sceneModelMatrix;
+@synthesize scene, materials, textures, totalTris, sceneNodes, context, sceneModelMatrix, screenWidth, screenHeight;
 
 static ResourceManager *sharedAssetsSingleton = nil;    // static instance variable
 

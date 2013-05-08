@@ -9,6 +9,6 @@
 #import "Camera.h"
 
 @implementation Camera
-@synthesize lookAt;
+@synthesize lookAt, clipNear, clipFar, fov;
 
 @end

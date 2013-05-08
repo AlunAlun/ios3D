@@ -17,6 +17,7 @@
 @property (assign) float rotationX;
 @property (assign) float rotationY;
 @property (assign) float rotationZ;
+@property (assign) GLKQuaternion rotation;
 @property (assign) float scale;
 @property (strong) NSString *name;
 
@@ -31,5 +32,6 @@
 - (void)handleTouchDown:(CGPoint)touchLocation;
 - (void)handleTouchMoved:(CGPoint)touchLocation;
 - (void)handleTouchUp:(CGPoint)touchLocation;
+
 
 @end

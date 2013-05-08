@@ -1,26 +1,26 @@
-#extension GL_EXT_shadow_samplers : require
+//#extension GL_EXT_shadow_samplers : require
 
 // Fragment shader
 precision highp float;
 
-uniform highp vec4 u_mat_diffuse;
-uniform highp vec4 u_mat_ambient;
-uniform highp float u_mat_specular;
-uniform highp float u_mat_shininess;
-uniform highp vec3 u_light_color;
-uniform highp float u_light_intensity;
+uniform lowp vec4 u_mat_color;
+uniform lowp vec4 u_mat_diffuse;
+uniform lowp vec4 u_mat_ambient;
+uniform lowp float u_mat_specular;
+uniform mediump float u_mat_shininess;
+uniform lowp vec3 u_light_color;
+uniform lowp float u_light_intensity;
 uniform highp vec3 u_light_dir;
 uniform highp float u_light_spot_cutoff;
 uniform highp vec3 u_light_pos;
 uniform highp vec3 u_camera_eye;
 
 
-varying highp vec3 v_light_dir; 
 varying highp vec3 v_normal;
 varying highp vec3 v_pos;
 
 #ifdef USE_DIFFUSE_TEXTURE
-uniform sampler2D u_textureSampler;
+uniform lowp sampler2D u_textureSampler;
 varying mediump vec2 v_fragmentTexCoord0;
 #endif
 
@@ -36,32 +36,39 @@ uniform sampler2D u_shadowMap;
 const float cos_outer_cone_angle = 0.8; // 36 degrees
 
 
-#if defined (USE_HARD_SHADOWS) | defined (USE_SOFT_SHADOWS)
+#ifdef USE_SOFT_SHADOWS
+
 float getShadow(vec2 coords)	
 {
-    float bias = 0.005;
-    highp vec2 sample = v_shadowCoord.xy + coords/500.0;
+    float bias = 0.02;
+    float shadow = 0.0;
+    highp vec2 sample = v_shadowCoord.xy + coords;///1000.0;
+    //float sampleDepth = texture2D( u_shadowMap, sample ).z;
     float sampleDepth = texture2D( u_shadowMap, sample ).z;
     //float sampleDepth = shadow2DEXT(u_shadowMap, v_shadowCoord.xyz);
     float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
-    
     if (depth < v_shadowCoord.z-bias)
-        return 0.1;
-    else
-        return 0.0;
+        shadow = 1.0;
+    
+    return shadow;
+    
 }
 #endif
 
 void main(void)
 {
+    
     //normalize all first
     highp vec3 E = normalize(u_camera_eye-v_pos);
     highp vec3 L = normalize(u_light_pos-v_pos);
     highp vec3 N = normalize(v_normal);
     highp vec3 D = normalize(u_light_dir);
     
+    //base color
+    highp vec4 finalColor = u_mat_color;
+    
     //ambient
-    highp vec4 finalColor = u_mat_ambient;
+    finalColor *= u_mat_ambient;
   
 
     highp float spot = 1.0;
@@ -99,21 +106,31 @@ void main(void)
     float bias = 0.005;
     highp vec2 sample = v_shadowCoord.xy;
     float sampleDepth = texture2D( u_shadowMap, sample ).z;
+    //float sampleDepth = texture2DProj( u_shadowMap, v_shadowCoord.xyz ).z;
     float depth = (sampleDepth == 1.0) ? 1.0e9 : sampleDepth; //on empty data send it to far away
     if (depth < v_shadowCoord.z-bias)
+    //if (depth < (v_shadowCoord.z-bias)/v_shadowCoord.w)
         shadow = 0.5;
 #endif
     
 #ifdef USE_SOFT_SHADOWS
-    shadow -= getShadow(vec2( -0.94201624, -0.39906216 ));
+    /*shadow -= getShadow(vec2( -0.94201624, -0.39906216 ));
     shadow -= getShadow(vec2( 0.94558609, -0.76890725 ));
     shadow -= getShadow(vec2( -0.094184101, -0.92938870 ));
-    shadow -= getShadow(vec2( 0.34495938, 0.29387760 ));
-#endif
-    
-    finalColor *= shadow;
-    
-    gl_FragColor = finalColor ;
+    shadow -= getShadow(vec2( 0.34495938, 0.29387760 ));*/
+    shadow = 2.0 * getShadow(vec2( 0, 0 ));
+    float spread = 0.003;
+    shadow += getShadow(vec2( 0.0, spread ));
+    shadow += getShadow(vec2( 0.0, -spread  ));
+    shadow += getShadow(vec2( -spread, 0.0 ));
+    shadow += getShadow(vec2( spread, 0.0 ));
+    /*shadow += getShadow(vec2( -spread, spread ));
+    shadow += getShadow(vec2( spread, -spread  ));
+    shadow += getShadow(vec2( -spread, spread ));
+    shadow += getShadow(vec2( spread, spread ));*/
+    shadow = 1.0 - shadow*0.1;
+#endif    
+    gl_FragColor = finalColor*shadow ;
 
 
 

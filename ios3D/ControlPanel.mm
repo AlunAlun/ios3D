@@ -73,7 +73,7 @@
     materialTitle.backgroundColor = [UIColor colorWithRed:0.16 green:0.16 blue:0.16 alpha:0.16];
     materialTitle.textColor = [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.0];
     materialTitle.text = @"Material";
-    [self addSubview:materialTitle];
+    //[self addSubview:materialTitle];
     
     //get material of current node
     //Node *currNodeObject = [[ResourceManager resources].scene.children objectAtIndex:self.currentNode];

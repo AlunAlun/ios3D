@@ -11,6 +11,7 @@
 #import "ShaderLoader.h"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + i)
+#define SHADOWMAP_RES 1024
 
 GLfloat R2TVerts[32] =
 {
@@ -33,7 +34,7 @@ GLuint R2TInds[6] =
     GLuint _verticesVBOS;
     GLuint _indicesVBOS;
     GLuint _VAOS;
-    GLuint _texture, _framebuffer;
+    GLuint _shadowMapTexture, _shadowMapFrameBuffer;
 }
 
 @end
@@ -51,16 +52,24 @@ static Renderer *renderSingleton = nil;    // static instance variable
     return renderSingleton;
 }
 
--(void)setupR2TQuad
+- (id)init {
+    if ( (self = [super init]) ) {
+        
+        //setup Render To Texture screen triangles
+        [self setupScreenSpaceQuad];
+        //setup Render To Texture Framebuffer and Texture
+        [self setupShadowMapBufferAndTexture];
+        
+    }
+    return self;
+}
+
+-(void)setupScreenSpaceQuad
 {
+    //Make Shader
     ShaderLoader *loader = [[ShaderLoader alloc] init];
     NSArray *flags = [[NSArray alloc] initWithObjects:nil];
-    
     _programScreenSpace  = [loader createProgramWithVertex:@"ShaderScreenSpaceVertex" Fragment:@"ShaderScreenSpaceFragment" Flags:flags];
-    
-    flags = [[NSArray alloc] initWithObjects: nil];
-    _programShadow  = [loader createProgramWithVertex:@"ShaderShadowMapVertex" Fragment:@"ShaderShadowMapFragment" Flags:flags];
-    
     
     // Make the vertex buffer
     glGenBuffers( 1, &_verticesVBOS );
@@ -92,31 +101,34 @@ static Renderer *renderSingleton = nil;    // static instance variable
     glBindVertexArrayOES( 0 );
 }
 
--(void)setupR2TBufferAndTexture
+-(void)setupShadowMapBufferAndTexture
 {
+    //Make Shader
+    ShaderLoader *loader = [[ShaderLoader alloc] init];
+    NSArray *flags = [[NSArray alloc] initWithObjects:@"SHADOW_DEPTH32", nil];
+    _programShadow  = [loader createProgramWithVertex:@"ShaderShadowMapVertex" Fragment:@"ShaderShadowMapFragment" Flags:flags];
+    
     //create texture
     
-    glGenTextures(1, &_texture);
-    glBindTexture(GL_TEXTURE_2D, _texture);
+    glGenTextures(1, &_shadowMapTexture);
+    glBindTexture(GL_TEXTURE_2D, _shadowMapTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SHADOWMAP_RES, SHADOWMAP_RES, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     
     
     // create framebuffer
-    glGenFramebuffersOES(1, &_framebuffer);//1
-    glBindFramebufferOES(GL_FRAMEBUFFER_OES, _framebuffer);//2
+    glGenFramebuffersOES(1, &_shadowMapFrameBuffer);//1
+    glBindFramebufferOES(GL_FRAMEBUFFER_OES, _shadowMapFrameBuffer);//2
     // attach renderbuffer
-    //glFramebufferTexture2DOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_TEXTURE_2D, _texInfo.name, 0); //3
-    glFramebufferTexture2DOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_TEXTURE_2D, _texture, 0);
+    glFramebufferTexture2DOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_TEXTURE_2D, _shadowMapTexture, 0);
     
     GLuint depthbuffer;
     glGenRenderbuffers(1, &depthbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 1024, 1024);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, SHADOWMAP_RES, SHADOWMAP_RES);
     glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, depthbuffer);
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER_OES);
     if(status != GL_FRAMEBUFFER_COMPLETE)
@@ -126,62 +138,35 @@ static Renderer *renderSingleton = nil;    // static instance variable
     glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
 }
 
-- (id)init {
-    if ( (self = [super init]) ) {
-        
-        //setup Render To Texture screen triangles
-        [self setupR2TQuad];
-        //setup Render To Texture Framebuffer and Texture
-        [self setupR2TBufferAndTexture];
-        
-        
-        
-    }
-    return self;
-}
 
 
-- (void)renderAllWithProjection:(GLKMatrix4)projection
+
+- (void)renderShadowPass:(GLKMatrix4)viewMatrixLight :(GLKMatrix4)projectionMatrixLight;
 {
-    
-    Light *light = [[ResourceManager resources].scene getLight:0];
-    Camera *cam = [[ResourceManager resources].scene getCamera:0];
-    
-    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
-                                                 cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
-                                                 0.0f, 1.0f, 0.0f);
-    
-    GLKVector3 lightLookAt = GLKVector3Make(0.0,50.0,0.0);//GLKVector3Add(light.position, light.direction);
-    
-    GLKMatrix4 viewMatrixLight = GLKMatrix4MakeLookAt(light.position.x, light.position.y, light.position.z,
-                                                 lightLookAt.x, lightLookAt.y, lightLookAt.z,
-                                                 0.0f, 1.0f, 0.0f);
-    
-    GLKMatrix4 projectionMatrixLight = GLKMatrix4MakeOrtho(-100,100,-100,100,200,700);
-    //projectionMatrixLight = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45), 1024/728, 200, 700);
-    
-    glDisable(GL_DITHER);
-    
     /* START RENDER TO TEXTURE */
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, SHADOWMAP_RES, SHADOWMAP_RES);
     
-    glBindFramebufferOES(GL_FRAMEBUFFER_OES, _framebuffer);
+    glBindFramebufferOES(GL_FRAMEBUFFER_OES, _shadowMapFrameBuffer);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-    glCullFace(GL_FRONT);
+    //glCullFace(GL_FRONT);
+    
+    
+    /* BIND PROGRAM AND GET UNIFORMS */
+    glUseProgram( _programShadow );
+    GLint attribute;
+    GLsizei stride = sizeof(GLfloat) * 8; // 3 vert, 3 normal, 2 texture
+    attribute = glGetAttribLocation(_programShadow, "a_vertex");
+    GLint matdepthMVP = glGetUniformLocation(_programShadow, "u_depthMVP");
+    
     //DRAW INSTANCES
     for (int i = 0; i < _instances.size(); i++)
     {
-        if ([_instances[i].mesh.name isEqualToString:@"Floor"])
-            continue;
         
         
         GLKMatrix4 modelMatrix = _instances[i].model;
         GLKMatrix4 modelViewMatrixLight = GLKMatrix4Multiply(viewMatrixLight, modelMatrix);
         
-        
-        
-        GLuint _program = [_instances[i].mesh getProgram];
         GLuint _VAO = [_instances[i].mesh getVAO];
         GLuint _indexBufferSize = [_instances[i].mesh getIndexBufferSize];
         GLuint _verticesVBO = [_instances[i].mesh getVerticesVBO];
@@ -189,8 +174,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
         
         // Bind the VAO and the program
         glBindVertexArrayOES( _VAO );
-        _program = _programShadow;
-        glUseProgram( _programShadow );
+        
         
         //Bind buffers
         glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
@@ -198,38 +182,73 @@ static Renderer *renderSingleton = nil;    // static instance variable
         
         /************** ATTRIBUTES **************/
         
-        GLint attribute;
-        GLsizei stride = sizeof(GLfloat) * 8; // 3 vert, 3 normal, 2 texture
         
-        //Vert positions
-        attribute = glGetAttribLocation(_programShadow, "a_vertex");
         glEnableVertexAttribArray( attribute );
         glVertexAttribPointer( attribute, 3, GL_FLOAT, GL_FALSE, stride, NULL );
         
         /****** UNIFORMS ********/
         
         GLKMatrix4 depthMVPMatrix = GLKMatrix4Multiply(projectionMatrixLight, modelViewMatrixLight);
-        GLint matdepthMVP = glGetUniformLocation(_programShadow, "u_depthMVP");
         glUniformMatrix4fv(matdepthMVP, 1, GL_FALSE, depthMVPMatrix.m);
-          
+        
         // Draw!
         glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
         
         //clear shit
         glBindVertexArrayOES( 0 );
     }
-
-
+    
+    
     glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
     /* END RENDER TO TEXTURE */
-   
+
+}
+
+
+
+
+- (void)renderAllWithProjection:(GLKMatrix4)projection
+{
+    /*** GET LIGHTS AND CAMERAS FROM SCENE MANAGER ***/
+    
+    Light *light = [[ResourceManager resources].scene getLight:0];
+    Camera *cam = [[ResourceManager resources].scene getCamera:0];
+    
+    /*** RENDER MATRICES ***/
+    
+    GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+                                                 cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
+                                                 0.0f, 1.0f, 0.0f);
+    
+    /*** SHADOW MATRICES ***/
+    
+    GLKVector3 lightDirection = GLKVector3Subtract(light.target, light.position);
+    GLKMatrix4 viewMatrixLight = GLKMatrix4MakeLookAt(light.position.x, light.position.y, light.position.z,
+                                                 light.target.x, light.target.y, light.target.z,
+                                                 0.0f, 1.0f, 0.0f);
+    GLKMatrix4 projectionMatrixLight = GLKMatrix4MakeOrtho(-100,150,-100,150,light.near,light.far);
+    //projectionMatrixLight = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45), 1024/728, 200, 700);
+    
+    /*** GENERAL FLAGS ***/
+    
+    glDisable(GL_DITHER);
+    glDisable(GL_CULL_FACE);
+    glEnable( GL_DEPTH_TEST );
+    
+    /*** SHADOW PASS ***/
+    
+    [self renderShadowPass:viewMatrixLight :projectionMatrixLight];
+    
+    
+    /*** MAIN PASS ***/
+    
      /* START SCREEN BUFFER */   
     glBindFramebufferOES(GL_FRAMEBUFFER_OES, 1);
-    glViewport(0, 0, 1024, 768);
+    glViewport(0, 0, [ResourceManager resources].screenWidth, [ResourceManager resources].screenHeight);
     GLKVector3 c = [ResourceManager resources].scene.backgroundColor;
     glClearColor(c.x, c.y, c.z, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-    glCullFace(GL_BACK);
+   
     //DRAW INSTANCES
     for (int i = 0; i < _instances.size(); i++)
     {
@@ -249,7 +268,9 @@ static Renderer *renderSingleton = nil;    // static instance variable
                              0.5, 0.5, 0.5, 1.0
                              );
         GLKMatrix4 depthBiasMVP = GLKMatrix4Multiply(biasMatrix, depthMVPMatrix);
-        //GLKMatrix4 depthBiasMVP = depthMVPMatrix;
+
+        /*** uncomment for DEPTH32 ***/
+        //depthBiasMVP = depthMVPMatrix;
 
         GLuint _program = [_instances[i].mesh getProgram];
         GLuint _VAO = [_instances[i].mesh getVAO];
@@ -338,7 +359,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
         glUniform3f(uLc, light.diffuseColor.x, light.diffuseColor.y, light.diffuseColor.z);
         
         GLint uSpot = glGetUniformLocation(_program, "u_light_dir");
-        glUniform3f(uSpot, light.direction.x, light.direction.y, light.direction.z);
+        glUniform3f(uSpot, lightDirection.x, lightDirection.y, lightDirection.z);
         
         GLint uSpotCut = glGetUniformLocation(_program, "u_light_spot_cutoff");
         glUniform1f(uSpotCut, light.spotCosCutoff);
@@ -347,6 +368,9 @@ static Renderer *renderSingleton = nil;    // static instance variable
         
         u = glGetUniformLocation(_program, "u_light_intensity");
         if(u!=-1)glUniform1f(u, light.intensity);
+        
+        u = glGetUniformLocation(_program, "u_mat_color");
+        if(u!=-1)glUniform4f(u, _instances[i].mat.color.r, _instances[i].mat.color.g, _instances[i].mat.color.b, 1.0f);
         
         u = glGetUniformLocation(_program, "u_mat_diffuse");
         if(u!=-1)glUniform4f(u, _instances[i].mat.diffuse.r, _instances[i].mat.diffuse.g, _instances[i].mat.diffuse.b, 1.0f);
@@ -360,7 +384,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
         u = glGetUniformLocation(_program, "u_mat_shininess");
         if(u!=-1)glUniform1f(u, _instances[i].mat.shininess);
         
-        u = glGetUniformLocation(_program, "u_textureSampler");
+        u = glGetUniformLocation(_program, "u_shadowMapSampler");
         if(u!=-1)glUniform1i(u, 0); //Texture unit 0 is for base images.
         
         u = glGetUniformLocation(_program, "u_detailSampler");
@@ -391,7 +415,9 @@ static Renderer *renderSingleton = nil;    // static instance variable
         
         //shadowmap
         glActiveTexture(GL_TEXTURE0 + 4);
-        glBindTexture(GL_TEXTURE_2D, _texture);
+        glBindTexture(GL_TEXTURE_2D, _shadowMapTexture);
+        
+    
         
         // Draw!
         glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
@@ -405,7 +431,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
     glBindVertexArrayOES( _VAOS );
     glUseProgram( _programScreenSpace );
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, _texture);
+    glBindTexture(GL_TEXTURE_2D, _shadowMapTexture);
     glDrawElements( GL_TRIANGLES, sizeof(R2TInds)/sizeof(GLuint), GL_UNSIGNED_INT, NULL );
     
     

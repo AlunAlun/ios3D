@@ -65,22 +65,26 @@
     Camera *cam = [self.currentScene getCamera:0];
     if (!cam) {NSLog(@"No Camera defined in scene");exit(1);}
     
+    
     //load context from Resource Manager
     self.context = [ResourceManager resources].context;
     if (!self.context) {NSLog(@"Failed to create ES context");exit(1);}
       
     // Initialize view
     GLKView *view = (GLKView *)self.view;
+    
     view.context = self.context;
     
     
     // Change the format of the depth renderbuffer
     // This value is None by default
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
+    
     //view.drawableMultisample = GLKViewDrawableMultisample4X;
+    view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
+    //view.drawableMultisample = GLKViewDrawableMultisampleNone;
     
     // Enable face culling and depth test
-    glEnable( GL_DEPTH_TEST );
+    
     //glEnable( GL_CULL_FACE  );
     //glCullFace(GL_BACK);
 
@@ -88,9 +92,13 @@
 
     
     
-    // Set up the viewport
-    int width = view.bounds.size.width;
-    int height = view.bounds.size.height;
+    // Set up the viewport:
+        //view.bounds get 'points' of screen (not pixels)
+        //scale gets the factor to support different resolution screens
+    int width = view.bounds.size.width*[[UIScreen mainScreen] scale];
+    int height = view.bounds.size.height*[[UIScreen mainScreen] scale];
+    [ResourceManager resources].screenWidth = width;
+    [ResourceManager resources].screenHeight = height;
     _screenWidth = width;
     _screenHeight = height;
     glViewport(0, 0, width, height);
@@ -101,7 +109,7 @@
                                             0.0f, 1.0f, 0.0f);
     
     _modelViewMatrix = GLKMatrix4Multiply(viewMatrix, [ResourceManager resources].sceneModelMatrix);
-    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(cam.aspectRatio),
+    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(cam.fov),
                                                   (float)width/(float)height,
                                                   cam.clipNear, cam.clipFar);
         
@@ -204,8 +212,9 @@
     CFTimeInterval previousTimestamp = CFAbsoluteTimeGetCurrent();
     
     // Clear the screen
-    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+
     
     //parse the scene to add to render queue
     [self.currentScene renderWithModel:[ResourceManager resources].sceneModelMatrix];

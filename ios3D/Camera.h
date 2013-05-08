@@ -13,7 +13,7 @@
 @property(assign) GLKVector3 lookAt;
 @property(assign) GLfloat clipNear;
 @property(assign) GLfloat clipFar;
-@property(assign) GLfloat aspectRatio;
+@property(assign) GLfloat fov;
 	
 
 @end

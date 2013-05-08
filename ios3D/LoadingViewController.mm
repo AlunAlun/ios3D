@@ -71,6 +71,7 @@
     
     //Straight phong
     NSArray *flags = [[NSArray alloc] initWithObjects:
+                      //@"USE_HARD_SHADOWS",
                       @"USE_SOFT_SHADOWS",
                       //@"USE_SPOT_LIGHT",
                       nil];
@@ -80,7 +81,8 @@
     //Diffuse Texture
     flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
-             @"USE_HARD_SHADOWS",
+             @"USE_SOFT_SHADOWS",
+             //@"USE_HARD_SHADOWS",
              //@"USE_SPOT_LIGHT",
              nil];
     GLuint shaderDiffuseTexture = [loader createProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
@@ -89,6 +91,7 @@
     flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
              //@"USE_HARD_SHADOWS",
+             @"USE_SOFT_SHADOWS",
              //@"USE_SPOT_LIGHT",
              @"USE_DETAIL_TEXTURE",
              nil];
@@ -99,18 +102,21 @@
     
     Camera *cam = [[Camera alloc] init];
     cam.name = @"Main Camera";
-    cam.position = GLKVector3Make(0.0, 150.0, 250.0f);
-    cam.lookAt = GLKVector3Make(0.0, 100.0, 0.0);
-    cam.clipNear = 5.0;
+    cam.position = GLKVector3Make(0.12079625762254009, 144.7904492272644, 250.54446586249261);
+    cam.lookAt = GLKVector3Make(0.12079625762254009, 93.0266405, 1.359303318242133);
+    cam.clipNear = 1.0;
     cam.clipFar = 1000.0;
-    cam.aspectRatio = 45.0;
+    cam.fov = 45.0;
     
     Light *light = [[Light alloc] init];
     light.name = @"Light";
-    light.position = GLKVector3Make(-300.0, 500.0, 150.0); // nice light
-    light.direction = GLKVector3Make(1.0,-1.6,-0.8);
+    light.position = GLKVector3Make(338, 455.5999999999999, 226); // nice light
+    //light.direction = GLKVector3Make(1.0,-1.6,-0.8);
     //light.position = GLKVector3Make(0.0, 500.0, 0.0);
+    //light.target = GLKVector3Make(0.0, 0.0, 0.0);
     //light.direction = GLKVector3Make(0.0,-1.0,0.0);
+    light.near = 367;
+    light.far = 670;
     light.spotCosCutoff = 0.93;
     light.intensity = 1.0;
     light.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
@@ -119,12 +125,14 @@
     
     
     Material *avatarMat = [[Material alloc] initWithProgram:shaderPhong];
-    avatarMat.diffuse = GLKVector4Make(0.6, 0.6, 0.6, 1.0);
-    avatarMat.ambient = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
-    avatarMat.specular = 1.0;
-    avatarMat.shininess = 50.0;
+    avatarMat.color = GLKVector4Make(0.0, 0.0, 0.0, 1.0);
+    avatarMat.diffuse = GLKVector4Make(0.19, 0.15, 0.15, 1.0);
+    avatarMat.ambient = GLKVector4Make(1.0, 1.0, 1.0, 1.0);
+    avatarMat.specular = 0.5;
+    avatarMat.shininess = 1.0;
     Mesh *avatarMesh = [ResourceManager WaveFrontOBJLoadMesh:@"avatar_girl.obj" withMaterial:avatarMat];
     avatarMesh.name = @"Avatar";
+    avatarMesh.rotation = GLKQuaternionMake(0, -0.46931692957878113, 0, -0.8830292820930481);
     //avatarMesh.rotationZ = 90.0;
      
      
@@ -133,23 +141,31 @@
     Material *shirtMat = [[Material alloc] initWithTexture:@"dress_top" ofType:@"jpg" andProgram:shaderDiffuseTexture];
     Mesh *shirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"tshirt.obj" withMaterial:shirtMat];
     shirtMesh.name = @"Shirt";
-    //shirtMesh.position = GLKVector3Make(-50.0, 0.0, 50.0);
+    shirtMat.ambient = GLKVector4Make(0.65, 0.65, 0.65, 1.0);
+    shirtMat.diffuse = GLKVector4Make(0.7, 0.7, 0.7, 0.7);
+    shirtMat.specular = 0.05;
+    shirtMat.shininess = 4.0;
+
     
    
     Material *skirtMat = [[Material alloc] initWithTexture:@"dress_skirt" ofType:@"jpg" andProgram:shaderDetailTexture];
     [skirtMat loadDetailTexture:@"detail_jeans" ofType:@"png"];
     Mesh *skirtMesh = [ResourceManager WaveFrontOBJLoadMesh:@"skirt.obj" withMaterial:skirtMat];
     skirtMesh.name = @"Skirt";
-     
+    skirtMat.ambient = GLKVector4Make(0.65, 0.65, 0.65, 1.0);
+    skirtMat.diffuse = GLKVector4Make(0.7, 0.7, 0.7, 0.7);
+    skirtMat.specular = 0.05;
+    skirtMat.shininess = 4.0;
+    
     
     Material *floorMat = [[Material alloc] initWithProgram:shaderPhong];
     floorMat.diffuse = GLKVector4Make(0.65, 0.65, 0.65, 1.0);
+    //floorMat.ambient = GLKVector4Make(0.1, 0.1, 0.1, 1.0);
     floorMat.ambient = GLKVector4Make(1.0, 1.0, 1.0, 1.0);
     floorMat.specular = 0.1;
     floorMat.shininess = 10.0;
     Mesh *floorMesh = [ResourceManager WaveFrontOBJLoadMesh:@"floor.obj" withMaterial:floorMat];
     floorMesh.scale = 10.0f;
-    floorMesh.rotationX = 0.0;
     floorMesh.name = @"Floor";
      
     
@@ -158,12 +174,12 @@
     [ResourceManager resources].scene.backgroundColor = GLKVector3Make(0.89, 0.89, 0.87);
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
-    [[ResourceManager resources].scene addChild:shirtMesh];
-    
+    [[ResourceManager resources].scene addChild:floorMesh];    
     [[ResourceManager resources].scene addChild:avatarMesh];
-    //[avatarMesh addChild:shirtMesh];
+    //[[ResourceManager resources].scene addChild:shirtMesh];
+    [avatarMesh addChild:shirtMesh];
     [avatarMesh addChild:skirtMesh];
-    [[ResourceManager resources].scene addChild:floorMesh];
+
      
     
     // Call completion handler - this performs the segue and loads 3D view

@@ -9,13 +9,16 @@
 #import "Light.h"
 
 @implementation Light
-@synthesize direction, intensity, diffuseColor, ambientColor, specularColor;
+@synthesize target, intensity, diffuseColor, ambientColor, specularColor, near, far;
 
 - (id)initWitName:(NSString*)name {
     if ((self = [super init])) {
         self.diffuseColor = GLKVector3Make(1.0, 1.0, 1.0);
         self.position = GLKVector3Make(0.0, 300.0, 0.0);
-        self.direction = GLKVector3Make(0.0, -1.0, 0.0);
+        self.target = GLKVector3Make(0.0, 0.0, 0.0);
+        self.near = 1.0;
+        self.far = 1000;
+        self.intensity = 1.0;
     }
     return self;
 }
