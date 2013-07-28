@@ -15,8 +15,7 @@
 @property(assign) GLfloat intensity;
 @property(assign) GLfloat near;
 @property(assign) GLfloat far;
+@property(assign) GLfloat angle;
 @property(assign) GLKVector3 diffuseColor;
-@property(assign) GLKVector3 ambientColor;
-@property(assign) GLKVector3 specularColor;
 
 @end

@@ -19,15 +19,19 @@
 @property(nonatomic, strong) NSMutableArray *materials;
 @property(nonatomic, strong) NSMutableArray *objects;
 
+
 @end
 
 @implementation Scene
-@synthesize textures, materials, objects, backgroundColor;
+@synthesize textures, materials, objects, backgroundColor, lightMoved, camMoved;
 
 - (id)initWitName:(NSString*)name {
     if ((self = [super init])) {
         self.name = name;
         backgroundColor = GLKVector3Make(1.0, 1.0, 1.0);
+        self.ambient = GLKVector3Make(1.0, 1.0, 1.0);
+        lightMoved = true;
+        camMoved = true;
     }
     return self;
 }
@@ -62,8 +66,14 @@
     int counter = 0;
     for (Node *n in self.children)
     {
-        if ([n isKindOfClass:[Camera class]] && counter==camId)
-            return (Camera*)n;
+        if ([n isKindOfClass:[Camera class]])
+        {
+            if(counter==camId)
+                return (Camera*)n;
+            else
+                counter++;
+        }
+        
     }
     return nil;
 }
@@ -73,10 +83,38 @@
     int counter = 0;
     for (Node *n in self.children)
     {
-        if ([n isKindOfClass:[Light class]] && counter==lightId)
-            return (Light*)n;
+        if ([n isKindOfClass:[Light class]])
+        {
+            if(counter==lightId)
+                return (Light*)n;
+            else
+                counter++;
+        }
+        
     }
     return nil;
+}
+
+- (int)getNumLights
+{
+    int counter = 0;
+    for (Node *n in self.children)
+    {
+        if ([n isKindOfClass:[Light class]])
+            counter++;
+    }
+    return counter;
+}
+
+- (int)getNumCameras
+{
+    int counter = 0;
+    for (Node *n in self.children)
+    {
+        if ([n isKindOfClass:[Camera class]])
+            counter++;
+    }
+    return counter;
 }
 
 @end

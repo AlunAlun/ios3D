@@ -23,6 +23,7 @@
 @synthesize specular = _specular;
 @synthesize shininess = _shininess;
 @synthesize program = _program;
+@synthesize shader = shader;
 
 -(id)init
 {
@@ -30,7 +31,7 @@
         self.name = @"WhiteTexture";
         self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
         self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
-        self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
+        self.ambient = GLKVector3Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT);
         self.specular =  DEFAULT_SPECULAR;
         self.shininess = DEFAULT_SHININESS;
         self.texture = nil;
@@ -45,7 +46,7 @@
         self.name = @"WhiteTexture";
         self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
         self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
-        self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
+        self.ambient = GLKVector3Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT);
         self.specular =  DEFAULT_SPECULAR;
         self.shininess = DEFAULT_SHININESS;
         self.program = program;
@@ -55,12 +56,29 @@
     return self;
 }
 
--(id)initWithTexture:(NSString*)filename ofType:(NSString*)type andProgram:(GLuint)program
+-(id)initWithShader:(Shader*)aShader
+{
+    if ((self = [super init])) {
+        self.shader = aShader;
+        self.name = @"WhiteTexture";
+        self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
+        self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
+        self.ambient = GLKVector3Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT);
+        self.specular =  DEFAULT_SPECULAR;
+        self.shininess = DEFAULT_SHININESS;
+        self.program = aShader.program;
+        self.texture = nil;
+        self.textureDetail = nil;
+    }
+    return self;
+}
+
+-(id)initWithTexture:(NSString*)filename andShader:(Shader*)aShader
 {
     if ((self = [super init])) {
         //load texture
         NSError *error;
-        NSString* filePath = [[NSBundle mainBundle] pathForResource:filename ofType:type];
+        NSString* filePath = [[NSBundle mainBundle] pathForResource:filename ofType:@""];
         self.texture = [GLKTextureLoader textureWithContentsOfFile:filePath options:nil error:&error];
         if(error) {
             NSLog(@"Error loading texture from image: %@", error);
@@ -68,12 +86,15 @@
         }
         self.name = filename;
         self.textureDetail = nil;
+        self.textureSpecular = nil;
+        self.textureNormal = nil;
         self.color = GLKVector4Make(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, 1.0);
         self.diffuse = GLKVector4Make(DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, DEFAULT_DIFFUSE, 1.0);
-        self.ambient = GLKVector4Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT, 1.0);
+        self.ambient = GLKVector3Make(DEFAULT_AMBIENT, DEFAULT_AMBIENT, DEFAULT_AMBIENT);
         self.specular =  DEFAULT_SPECULAR;
         self.shininess = DEFAULT_SHININESS;
-        self.program = program;
+        self.shader = aShader;
+        self.program = aShader.program;
     }
     return self;
 }

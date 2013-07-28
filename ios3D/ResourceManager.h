@@ -25,6 +25,7 @@
 @property (nonatomic, strong) NSMutableArray *materials;
 @property (assign) GLKMatrix4 sceneModelMatrix;
 @property (assign) int totalTris;
+@property (nonatomic, assign) bool showShadowBuffer;
 
 + (ResourceManager *)resources;   // class method to return the singleton object
 

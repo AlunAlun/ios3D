@@ -9,7 +9,6 @@
 #import "Light.h"
 
 @implementation Light
-@synthesize target, intensity, diffuseColor, ambientColor, specularColor, near, far;
 
 - (id)initWitName:(NSString*)name {
     if ((self = [super init])) {

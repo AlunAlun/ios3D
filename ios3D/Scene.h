@@ -13,9 +13,14 @@
 @interface Scene : Node
 
 @property(assign) GLKVector3 backgroundColor;
+@property(nonatomic, assign) GLKVector3 ambient;
+@property(assign) bool camMoved;
+@property(assign) bool lightMoved;
 
 - (id)initWitName:(NSString*)name;
 - (Camera*)getCamera:(int)camId;
 - (Light*)getLight:(int)lightId;
+- (int)getNumLights;
 - (Node*)getChild:(NSString *)name;
+- (int)getNumCameras;
 @end

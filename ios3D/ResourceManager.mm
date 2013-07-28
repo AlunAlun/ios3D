@@ -12,6 +12,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#import <sys/stat.h>
 
 @implementation ResourceManager
 @synthesize scene, materials, textures, totalTris, sceneNodes, context, sceneModelMatrix, screenWidth, screenHeight;
@@ -60,11 +61,15 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
     std::vector<std::string> vecVertexCombinations; //vector for forward lookup speed
     std::vector<std::string> vecIndexArray; //store all face infices
 
-    //get data
-    NSString *baseName = [[fileName componentsSeparatedByString:@"."] objectAtIndex:0];
-    NSString *fileType = [[fileName componentsSeparatedByString:@"."] objectAtIndex:1];
-    NSString *path = [[NSBundle mainBundle] pathForResource:baseName ofType:fileType];
+    //for local
+    //NSString *baseName = [[fileName componentsSeparatedByString:@"."] objectAtIndex:0];
+    //NSString *fileType = [[fileName componentsSeparatedByString:@"."] objectAtIndex:1];
+   
+    
+    //NSString *path = [[NSBundle mainBundle] pathForResource:baseName ofType:fileType];
+    NSString *path = fileName;
     NSString *objData = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+
 
     //first loop
     NSArray *lines = [objData componentsSeparatedByString:@"\n"];
@@ -79,28 +84,33 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
             if (firstTextureCoords) // count to see how many texture coords there
             {
                 firstTextureCoords = NO;
-                NSString *texLine = [line substringFromIndex:3];
+                NSString *texLine = [[line substringFromIndex:3]
+                                     stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
                 NSArray *texParts = [texLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
                 valuesPerCoord = [texParts count];
             }
         }
         else if ([line hasPrefix:@"f"])
         {
-            NSString *faceLine = [line substringFromIndex:2];
+            NSString *faceLine = [[line substringFromIndex:2]
+                                    stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             NSArray *faces = [faceLine componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
             if ([faces count] == 3){ //tris okay no problem
                 faceCount++;
+                vecIndexArray.push_back([[faces objectAtIndex:0] cStringUsingEncoding:NSUTF8StringEncoding]);
+                vecIndexArray.push_back([[faces objectAtIndex:1] cStringUsingEncoding:NSUTF8StringEncoding]);
+                vecIndexArray.push_back([[faces objectAtIndex:2] cStringUsingEncoding:NSUTF8StringEncoding]);
                 for (NSString *oneFace in faces)
                 {
                     //not tested!!!!
-                    vecIndexArray.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
+                    
                     std::map<std::string,int>::iterator it = mapVertexCombinations.find([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
                     if (it == mapVertexCombinations.end())
                     {
                         mapVertexCombinations[[oneFace cStringUsingEncoding:NSUTF8StringEncoding]] = mapCounter;
+                        mapCounter++; 
                         vecVertexCombinations.push_back([oneFace cStringUsingEncoding:NSUTF8StringEncoding]);
-                    }
-                    mapCounter++;        
+                    }      
                 }
             }
             else if ([faces count] == 4) //make two tris from quad
@@ -127,7 +137,11 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
             else quadTriError = 1;
         }
     }
-       
+    
+    NSLog(@"Num Verts %d",vertexCount);
+    NSLog(@"Num Faces %d",faceCount);
+    
+    
     //initialise raw data arrays
     GLfloat RawVertexData[vertexCount*3];
     GLfloat RawNormalData[normalCount*3];
@@ -141,7 +155,8 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
     {
         if ([line hasPrefix:@"v "])
         {
-            NSString *lineTrunc = [line substringFromIndex:2];
+            NSString *lineTrunc = [[line substringFromIndex:2]
+                                   stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             NSArray *lineVertices = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
             
             RawVertexData[vertexCountx3] = [[lineVertices objectAtIndex:0] floatValue];
@@ -152,7 +167,8 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
         
         else if ([line hasPrefix: @"vn "])
         {
-            NSString *lineTrunc = [line substringFromIndex:3];
+            NSString *lineTrunc = [[line substringFromIndex:3]
+                                    stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             NSArray *lineNorms = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
             RawNormalData[normCountx3] = [[lineNorms objectAtIndex:0] floatValue];
             RawNormalData[normCountx3+1] = [[lineNorms objectAtIndex:1] floatValue];
@@ -162,16 +178,21 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
         }
         else if ([line hasPrefix: @"vt "])
         {
-            NSString *lineTrunc = [line substringFromIndex:3];
+            NSString *lineTrunc = [[line substringFromIndex:3]
+                                    stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             NSArray *lineCoords = [lineTrunc componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
             RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:0] floatValue];
             RawTextureData[texCountx2++] = [[lineCoords objectAtIndex:1] floatValue];
         }
     }
+
+
     
     //Fill final data arrays
     GLuint dataBufferSize = mapVertexCombinations.size();
-    GLfloat dataBuffer[dataBufferSize*8];
+    //GLfloat dataBuffer[dataBufferSize*8];
+    GLfloat *dataBuffer;
+    dataBuffer = (GLfloat*)malloc(dataBufferSize*8 * sizeof(GLfloat));
     int buffPos = 0;
     for (int i = 0; i<vecVertexCombinations.size(); i++)
     {
@@ -183,7 +204,9 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
         if (it != mapVertexCombinations.end())
             key = it->first.c_str();
         
+        
         NSString *pair = [NSString stringWithCString:key encoding:NSUTF8StringEncoding];
+        //NSLog(@"%@", pair);
         NSArray *pairParts = [pair componentsSeparatedByString:@"/"];
         int currVertexPos = [[pairParts objectAtIndex:0] intValue]-1; // we substract one because file string is not 0-based
         int currTextPos = [[pairParts objectAtIndex:1] intValue]-1;
@@ -206,8 +229,12 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
         buffPos+=8;
     }
     
+
+    
     //  Create new index buffer by searching for i/j/k string
-    GLuint indexBuffer[faceCount*3];
+    //GLuint indexBuffer[faceCount*3];
+    GLuint *indexBuffer;
+    indexBuffer = (GLuint*)malloc(faceCount*8 * sizeof(GLuint));
     GLuint indexBufferSize = faceCount*3;
 
     for (int i = 0; i < faceCount*3; i+=3)
@@ -238,8 +265,10 @@ static ResourceManager *sharedAssetsSingleton = nil;    // static instance varia
     
     //increment total tri count
     [ResourceManager resources].totalTris+=faceCount;
+      
     //create new mesh object
     return [[Mesh alloc] initWithDataBuffer:vecData indexBuffer:vecIndex material:mat];
+    
+    
 }
-
 @end

@@ -17,7 +17,7 @@
 #import "SimpleCube.h"
 #import "ControlPanel.h"
 #import "ResourceManager.h"
-#import "ShaderLoader.h"
+#import "Shader.h"
 #import "Camera.h"
 #import "ResourceManager.h"
 #import "Renderer.h"
@@ -101,7 +101,7 @@
     [ResourceManager resources].screenHeight = height;
     _screenWidth = width;
     _screenHeight = height;
-    glViewport(0, 0, width, height);
+    //glViewport(0, 0, width, height);
     
     //setup matrices
     GLKMatrix4 viewMatrix = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,

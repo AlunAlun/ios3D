@@ -11,6 +11,9 @@
 #import "ResourceManager.h"
 
 @implementation ControlPanel
+{
+    UISwitch *_shadowSwitch;
+}
 @synthesize sceneTree = _sceneTree;
 @synthesize nodeNames = _nodeNames;
 @synthesize currentNode = _currentNode;
@@ -63,6 +66,23 @@
         [treeView addSubview:newLabel];
     }
 
+    //title
+    UILabel *shadowTitle = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 260.0, 300.0, 20)];
+    shadowTitle.backgroundColor = [UIColor colorWithRed:0.16 green:0.16 blue:0.16 alpha:0.16];
+    shadowTitle.textColor = [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.0];
+    shadowTitle.text = @"Show Shadow Map";
+    [self addSubview:shadowTitle];
+    
+    
+    CGRect frame = CGRectMake(10.0, 300.0, 60.0, 26.0);
+    _shadowSwitch = [[UISwitch alloc] initWithFrame:frame];
+    [_shadowSwitch addTarget:self action:@selector(actionSwitch:) forControlEvents:UIControlEventTouchUpInside];
+    
+    [_shadowSwitch setBackgroundColor:[UIColor clearColor]];
+    if ([ResourceManager resources].showShadowBuffer)
+        [_shadowSwitch setOn:YES];
+    [self addSubview:_shadowSwitch];
+    
     
     //**************************************
     // Materials section
@@ -81,6 +101,14 @@
     
 }
 
+-(void)actionSwitch:(id)sender
+{
+    //NSLog(@"bob");
+    if (![_shadowSwitch isOn])
+        [ResourceManager resources].showShadowBuffer = false;
+    else
+        [ResourceManager resources].showShadowBuffer = true;
+}
 
 /*
 // Only override drawRect: if you perform custom drawing.

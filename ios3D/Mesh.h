@@ -13,9 +13,13 @@
 @interface Mesh : Node
 
 @property (nonatomic, strong) Material *material;
-
+@property (nonatomic, strong) Shader *shader;
 
 -(id)initWithDataBuffer:(std::vector<GLfloat>)db indexBuffer:(std::vector<GLuint>)ib material:(Material*)mat;
+-(void)LoadWaveFrontOBJ:(NSString*)fileName;
+-(void)setDataBuffers:(std::vector<GLfloat>)db indexBuffer:(std::vector<GLuint>)ib;
+-(void)assignMaterial:(Material *)mat;
+
 -(GLuint)getProgram;
 -(GLuint)getVerticesVBO;
 -(GLuint)getIndicesVBO;
