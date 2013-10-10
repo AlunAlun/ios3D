@@ -13,7 +13,6 @@
 #import "ResourceManager.h"
 #import "Camera.h"
 #import "Light.h"
-#import "Line.h"
 
 
 #define kBgQueue dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0) 
@@ -59,7 +58,8 @@
     
     dispatch_async(kBgQueue, ^{
         //NSData* data = [NSData dataWithContentsOfURL:jsonURL];
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"lee_annot.json" ofType:@""];
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"lee.json" ofType:@""];
+        //NSString *path = [[NSBundle mainBundle] pathForResource:@"guitarAnnoted.json" ofType:@""];
         NSLog(@"%@", path);
         NSData *data = [NSData dataWithContentsOfFile:path];
         if (data == nil)
@@ -170,8 +170,10 @@
 
                 //get files to download
                 NSDictionary *meshes = [comp objectAtIndex:1];
-                [listToDownload addObject:[self.serverAssetPath stringByAppendingString:[meshes objectForKey:@"mesh"]]];
-                [listToDownload addObject:[self.serverAssetPath stringByAppendingString:[meshes objectForKey:@"lod_mesh"]]];
+                if ([meshes objectForKey:@"mesh"] != nil)
+                    [listToDownload addObject:[self.serverAssetPath stringByAppendingString:[meshes objectForKey:@"mesh"]]];
+                if ([meshes objectForKey:@"lod_mesh"] != nil)
+                    [listToDownload addObject:[self.serverAssetPath stringByAppendingString:[meshes objectForKey:@"lod_mesh"]]];
                 
                 //add
                 JSONComponentMeshRenderer *currMesh= [[JSONComponentMeshRenderer alloc] init];
@@ -219,6 +221,19 @@
                 [currNode.components addObject:currLight];
                 currNode.isLight = true;
                 [self.jsonScene.lights addObject:currLight];
+            }
+            if ([componentName isEqualToString:@"AnnotationComponent"])
+            {
+                NSDictionary *annotations = [comp objectAtIndex:1];
+                NSArray *notes = [annotations valueForKey:@"notes"];
+                for (NSDictionary *aNote in notes)
+                {
+                    //add
+                    JSONComponentAnnotation *currAnnotation= [[JSONComponentAnnotation alloc] init];
+                    currAnnotation.componentType = JSONComponentTypeAnnotation;
+                    [currAnnotation loadAnnotation:aNote];
+                    [currNode.components addObject:currAnnotation];
+                }
             }
         }
         //material
@@ -320,19 +335,32 @@
     NSArray *flags = [[NSArray alloc] initWithObjects:
              @"USE_DIFFUSE_TEXTURE",
              @"USE_SPECULAR_TEXTURE",
+             @"USE_VELVET",
              @"LIGHT2",
              @"LIGHT2_LINEAR_ATTENUATION",
              @"USE_NORMAL_TEXTURE",
              nil];
     Shader *shaderDiffuseTexture = [[Shader alloc] initProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
     
+    //Diffuse Texture
+    flags = [[NSArray alloc] initWithObjects:
+                      @"DRAW_LINES",
+                      nil];
+    Shader *shaderLine = [[Shader alloc] initProgramWithVertex:@"ShaderUberVertex" Fragment:@"ShaderUberFragment" Flags:flags];
+    
     //WebGL Texture
     flags = [[NSArray alloc] initWithObjects:
              @"USE_COLOR_TEXTURE uvs_0",
-             @"USE_SPECULAR_TEXTURE uvs_0",
+             //@"USE_NORMAL_TEXTURE uvs_0",
+             //@"USE_NORMALMAP_FACTOR",
+             //@"USE_SPECULAR_TEXTURE uvs_0",
              @"USE_DIFFUSE_LIGHT uvs_0",
              @"USE_SPECULAR_LIGHT uvs_0",
+             //@"USE_VELVET",
              @"FIRST_PASS",
+             //@"USE_SPECULAR_ONTOP",
+             //@"USE_LINEAR_ATTENUATION",
+             	@"USE_DIRECTIONAL_LIGHT",
              nil];
     Shader *shaderWebGL = [[Shader alloc] initProgramWithVertex:@"webGLVertexShader" Fragment:@"webGLPixelShader" Flags:flags];
 
@@ -355,6 +383,7 @@
     light.intensity = jLight.intensity;
     light.diffuseColor = jLight.color;
     light.angle = jLight.angle;
+    light.frustrumSize = jLight.frustrum_size;
     
     jLight = [self.jsonScene.lights objectAtIndex:1];
     Light *light2 = [[Light alloc] init];
@@ -367,35 +396,27 @@
     light2.diffuseColor = jLight.color;
     light2.angle = jLight.angle;
 
-    //Line
-    Material *lineMat = [[Material alloc] initWithShader:shaderDiffuseTexture];
-    std::vector<GLfloat> lineData;
-    lineData.push_back(0.0);
-    lineData.push_back(0.0);
-    lineData.push_back(0.0);
-    lineData.push_back(200.0);
-    lineData.push_back(200.0);
-    lineData.push_back(0.0);
-    Line *line = [[Line alloc] initWithDataBuffer:lineData material:lineMat];
-
-    
+    //Line Material
+    Material *lineMat = [[Material alloc] initWithShader:shaderLine];
+    lineMat.drawLines = true;
+  
     //get paths to local storage
     NSArray  *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSError *error;
     
     //create scene
-    Scene *scene = [ResourceManager resources].scene;
+
     [ResourceManager resources].scene = [[Scene alloc] initWitName:@"Lee Scene"];
     [ResourceManager resources].scene.backgroundColor = self.jsonScene.background_color;
     [ResourceManager resources].scene.ambient = self.jsonScene.ambient_color;
     [[ResourceManager resources].scene addChild:cam];
     [[ResourceManager resources].scene addChild:light];
     [[ResourceManager resources].scene addChild:light2];
-    [[ResourceManager resources].scene addChild:line];
-    
 
-    
+    int annotationCounter = 0;
+
+ 
     //parse nodes and add to scene
     for (JSONNode *node in self.jsonScene.nodes)
     {
@@ -406,8 +427,9 @@
             //color texture
             NSString  *filePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory,
                                    [node.material.texture_color lastPathComponent]];
-            currMat.texture = [GLKTextureLoader textureWithContentsOfFile:filePath options:nil error:&error];
 
+            currMat.texture = [GLKTextureLoader textureWithContentsOfFile:filePath options:nil error:&error];
+            NSLog(@"%@", [error localizedDescription]);
             //normal texture
             filePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory,
                         [node.material.texture_normal lastPathComponent]];
@@ -421,9 +443,19 @@
             
             //other material properties
             currMat.ambient = GLKVector3Make(node.material.ambient.x, node.material.ambient.y, node.material.ambient.z);
-            currMat.diffuse = GLKVector4Make(node.material.diffuse.x, node.material.diffuse.x, node.material.diffuse.x, 1.0);
+            currMat.color = GLKVector4Make(node.material.color.x, node.material.color.y, node.material.color.z, 1.0);
+            currMat.diffuse = GLKVector4Make(node.material.diffuse.x, node.material.diffuse.y, node.material.diffuse.z, 1.0);
+            currMat.emissive = GLKVector3Make(node.material.emissive.x, node.material.emissive.y, node.material.emissive.z);
             currMat.specular = node.material.specular_factor;
             currMat.shininess = node.material.specular_gloss;
+            currMat.velvet = node.material.velvet;
+            currMat.velvet_exp = node.material.velvet_exp;
+            currMat.detailInfo = node.material.detail;
+            currMat.backlightFactor = node.material.backlight_factor;
+            currMat.normalMapFactor = node.material.normalmap_factor;
+            currMat.brightnessFactor = 1.0;
+            currMat.lightOffset = 0.0;
+            currMat.colorclipFactor = 0.0;
             
             //load mesh
             Mesh *currMesh = [[Mesh alloc] init];
@@ -449,6 +481,59 @@
                     currMesh.rotation = jTransform.rotation;
                     currMesh.position = jTransform.position;
                 }
+                //check components
+                if (comp.componentType == JSONComponentTypeAnnotation)
+                {
+                    JSONComponentAnnotation *jAnnotation = (JSONComponentAnnotation*)comp;
+                    float scale = 1.0;
+                    GLKVector3 transform = GLKVector3Make(0.0,0.0,0.0);
+                    //search for transform
+                    for (JSONComponent *comp in node.components)
+                        if (comp.componentType == JSONComponentTypeTransform)
+                        {
+                            JSONComponentTransform *jTransform = (JSONComponentTransform*)comp;
+                            scale = jTransform.scale.x;
+                            transform = jTransform.position;
+                        }
+                    //make mesh line
+                    std::vector<GLfloat> lineVecs;
+                    lineVecs.push_back(jAnnotation.startPosition.x*scale+transform.x);
+                    lineVecs.push_back(jAnnotation.startPosition.y*scale+transform.y);
+                    lineVecs.push_back(jAnnotation.startPosition.z*scale+transform.z);
+                    lineVecs.push_back(0.0); lineVecs.push_back(0.0); lineVecs.push_back(0.0);
+                    lineVecs.push_back(0.0); lineVecs.push_back(0.0);
+                    lineVecs.push_back(jAnnotation.endPosition.x*scale+transform.x);
+                    lineVecs.push_back(jAnnotation.endPosition.y*scale+transform.y);
+                    lineVecs.push_back(jAnnotation.endPosition.z*scale+transform.z);
+                    lineVecs.push_back(0.0); lineVecs.push_back(0.0); lineVecs.push_back(0.0);
+                    lineVecs.push_back(0.0); lineVecs.push_back(0.0);
+                    std::vector<GLuint> lineInds;
+                    lineInds.push_back(0); lineInds.push_back(1);
+                    
+                    //Make annotation labels
+                    CGSize s = [jAnnotation.text sizeWithFont:[UIFont systemFontOfSize:12] constrainedToSize:CGSizeMake(1024.0, 768.0) lineBreakMode:NSLineBreakByWordWrapping];
+                    UILabel *newLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, s.width, s.height)];
+                    [newLabel setText:jAnnotation.text];
+                    newLabel.backgroundColor = [UIColor clearColor];
+                    newLabel.textColor = [UIColor whiteColor];
+                    [newLabel setFont:[UIFont systemFontOfSize:12]];
+                    newLabel.numberOfLines = 0;
+                    
+                    //add to scene - will be added to view in 3D view controller
+                    [[ResourceManager resources].scene.annotationLabels addObject:newLabel];
+                    
+
+                    //add mesh to scene graph
+                    Mesh *newAnnotation = [[Mesh alloc] initWithDataBuffer:lineVecs indexBuffer:lineInds material:lineMat];
+                    newAnnotation.isAnnotation = true;
+                    newAnnotation.annotationNumber = annotationCounter;
+                    newAnnotation.annotationEndPoint = GLKVector3Make(jAnnotation.endPosition.x*scale+transform.x,
+                                                                      jAnnotation.endPosition.y*scale+transform.y,
+                                                                      jAnnotation.endPosition.z*scale+transform.z);
+                    annotationCounter++;
+                    [[ResourceManager resources].scene addChild:newAnnotation];
+                }
+                
             }
             [[ResourceManager resources].scene addChild:currMesh];
             

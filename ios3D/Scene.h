@@ -16,6 +16,7 @@
 @property(nonatomic, assign) GLKVector3 ambient;
 @property(assign) bool camMoved;
 @property(assign) bool lightMoved;
+@property(strong) NSMutableArray *annotationLabels;
 
 - (id)initWitName:(NSString*)name;
 - (Camera*)getCamera:(int)camId;

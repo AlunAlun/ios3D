@@ -154,8 +154,9 @@ static Renderer *renderSingleton = nil;    // static instance variable
     GLKMatrix4 viewMatrixLight = GLKMatrix4MakeLookAt(light.position.x, light.position.y, light.position.z,
                                                       light.target.x, light.target.y, light.target.z,
                                                       0.0f, 1.0f, 0.0f);
-    //GLKMatrix4 projectionMatrixLight = GLKMatrix4MakeOrtho(-100,150,-100,150,light.near,light.far);
-    GLKMatrix4 projectionMatrixLight = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(light.angle), 1024/728, 200, 700);
+    int lfsd2 = (int)light.frustrumSize/2;
+    GLKMatrix4 projectionMatrixLight = GLKMatrix4MakeOrtho(-lfsd2,lfsd2,-lfsd2,lfsd2,light.near,light.far);
+    //GLKMatrix4 projectionMatrixLight = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(light.angle), 1024/728, 200, 700);
     
     /* START RENDER TO TEXTURE */
     glViewport(0, 0, SHADOWMAP_RES, SHADOWMAP_RES);
@@ -206,7 +207,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
         glUniformMatrix4fv(matdepthMVP, 1, GL_FALSE, depthMVPMatrix.m);
         
         // Draw!
-        //glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
+        glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
         //glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_INT, NULL );
         
         //clear shit
@@ -223,6 +224,9 @@ static Renderer *renderSingleton = nil;    // static instance variable
 {
     Scene *scene = [ResourceManager resources].scene;
     Camera *cam = [scene getCamera:0];
+    Light *light = [scene getLight:0];
+    GLKVector3 lightDirection = GLKVector3Subtract(light.position, light.target);
+    lightDirection = GLKVector3Normalize(lightDirection);
     
     GLKMatrix4 m = _instances[i].model;
     GLKMatrix4 v = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
@@ -232,6 +236,8 @@ static Renderer *renderSingleton = nil;    // static instance variable
     GLKMatrix4 mvp = GLKMatrix4Multiply(vp, m);
     
     GLint u;
+    
+    /*MATRICES & CAMERA*/
     
     u = glGetUniformLocation(program, "u_mvp");
     if(u!=-1) glUniformMatrix4fv(u, 1, GL_FALSE, mvp.m);
@@ -252,55 +258,142 @@ static Renderer *renderSingleton = nil;    // static instance variable
     
     u = glGetUniformLocation(program, "u_camera_eye");
     if(u!=-1) glUniform3f(u, cam.position.x, cam.position.y, cam.position.z);
+    u = glGetUniformLocation(program, "u_camera_planes");
+    if(u!=-1) glUniform2f(u, cam.clipNear, cam.clipFar);
+    
+    /*MATERIAL*/
     
     u = glGetUniformLocation(program, "u_material_color");
     if(u!=-1)glUniform4f(u, _instances[i].mat.color.r, _instances[i].mat.color.g, _instances[i].mat.color.b, 1.0f);
-    
     u = glGetUniformLocation(program, "u_ambient_color");
     if(u!=-1)glUniform3f(u, scene.ambient.r * _instances[i].mat.ambient.r,
                          scene.ambient.g * _instances[i].mat.ambient.g,
                          scene.ambient.b * _instances[i].mat.ambient.b);
-    
     u = glGetUniformLocation(program, "u_diffuse_color");
     if(u!=-1)glUniform3f(u, _instances[i].mat.diffuse.r, _instances[i].mat.diffuse.g, _instances[i].mat.diffuse.b);
+    u = glGetUniformLocation(program, "u_emissive_color");
+    if(u!=-1)glUniform3f(u, _instances[i].mat.emissive.r, _instances[i].mat.emissive.g, _instances[i].mat.emissive.b);
+    u = glGetUniformLocation(program, "u_specular");
+    if(u!=-1) glUniform2f(u, _instances[i].mat.specular, _instances[i].mat.shininess);//??????????????????????????????
+    u = glGetUniformLocation(program, "u_detail_info");
+    if(u!=-1)glUniform3f(u, _instances[i].mat.detailInfo.r, _instances[i].mat.detailInfo.g, _instances[i].mat.detailInfo.b);
+    u = glGetUniformLocation(program, "u_velvet_info");
+    if(u!=-1)glUniform4f(u, _instances[i].mat.velvet.r, _instances[i].mat.velvet.g, _instances[i].mat.velvet.b,
+                         _instances[i].mat.velvet_exp);
+    u = glGetUniformLocation(program, "u_backlight_factor");
+    if(u!=-1)glUniform1f(u, _instances[i].mat.backlightFactor);
+    u = glGetUniformLocation(program, "u_normalmap_factor");
+    if(u!=-1)glUniform1f(u, _instances[i].mat.normalMapFactor);
+    
+
+    
+    u = glGetUniformLocation(program, "u_fog_info");
+    if(u!=-1)glUniform3f(u, 0.0, 0.0, 0.0);
+    u = glGetUniformLocation(program, "u_fog_color");
+    if(u!=-1)glUniform3f(u, 0.0, 0.0, 0.0);
+
+    
+    /*LIGHT*/
+    
+    u = glGetUniformLocation(program, "u_light_pos");
+    if(u!=-1)glUniform3f(u, light.position.x, light.position.y, light.position.z);
+    u = glGetUniformLocation(program, "u_light_front");
+    if(u!=-1)glUniform3f(u, lightDirection.x, lightDirection.y, lightDirection.z);
+    u = glGetUniformLocation(program, "u_light_color");
+    if(u!=-1)glUniform3f(u, light.diffuseColor.x, light.diffuseColor.y, light.diffuseColor.z);
+    u = glGetUniformLocation(program, "u_light_angle");
+    if(u!=-1)glUniform4f(u, light.near, light.far, light.angle, light.angle); //??????????????????????????????
+    u = glGetUniformLocation(program, "u_light_att");
+    if(u!=-1)glUniform2f(u, light.near, light.far); //??????????????????????????????
+    //u = glGetUniformLocation(program, "u_brightness_factor");
+    //if(u!=-1)glUniform1f(u, 1.5);
+
+    //uniform float u_brightness_factor;
+    //uniform float u_colorclip_factor;
     
     /*TEXTURES*/
+    //color 0
     u = glGetUniformLocation(program, "color_texture");
     if(u!=-1)glUniform1i(u, 0); //Texture unit 0 is for base images.
+    if (_instances[i].mat.texture != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(_instances[i].mat.texture.target, _instances[i].mat.texture.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //normal 1
+    u = glGetUniformLocation(program, "normal_texture");
+    if(u!=-1)glUniform1i(u, 1); 
+    if (_instances[i].mat.textureNormal != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(_instances[i].mat.textureNormal.target, _instances[i].mat.textureNormal.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //specular 2
+    u = glGetUniformLocation(program, "specular_texture");
+    if(u!=-1)glUniform1i(u, 2);
+    if (_instances[i].mat.textureSpecular != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(_instances[i].mat.textureSpecular.target, _instances[i].mat.textureSpecular.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //opacity 3
+    u = glGetUniformLocation(program, "opacity_texture");
+    if(u!=-1)glUniform1i(u, 3);
+    if (_instances[i].mat.textureOpacity != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(_instances[i].mat.textureOpacity.target, _instances[i].mat.textureOpacity.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //ambient 4
+    u = glGetUniformLocation(program, "ambient_texture");
+    if(u!=-1)glUniform1i(u, 4);
+    if (_instances[i].mat.textureAmbient != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 4);
+        glBindTexture(_instances[i].mat.textureAmbient.target, _instances[i].mat.textureAmbient.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //emissive 5
+    u = glGetUniformLocation(program, "emissive_texture");
+    if(u!=-1)glUniform1i(u, 5);
+    if (_instances[i].mat.textureEmissive != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 5);
+        glBindTexture(_instances[i].mat.textureEmissive.target, _instances[i].mat.textureEmissive.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //emissive 6
+    u = glGetUniformLocation(program, "detail_texture");
+    if(u!=-1)glUniform1i(u, 6);
+    if (_instances[i].mat.textureDetail != nil)
+    {
+        glActiveTexture(GL_TEXTURE0 + 6);
+        glBindTexture(_instances[i].mat.textureDetail.target, _instances[i].mat.textureDetail.name);
+        glDisable(GL_TEXTURE_2D);
+    }
+    //shadowmap
+    u = glGetUniformLocation(program, "shadowMap");
+    if(u!=-1)glUniform1i(u, 7);
+    glActiveTexture(GL_TEXTURE0 + 7);
+    glBindTexture(GL_TEXTURE_2D, _shadowMapTexture);
+    glDisable(GL_TEXTURE_2D);
+    
+    _shouldSetUniforms = false;
+    
+
     
     /*
     uniform mat3 u_texture_matrix;
     uniform mat4 u_lightMatrix;
-    
-     //must set
+    uniform vec4 u_clipping_plane;
 
-     uniform vec3 u_emissive_color;
-     uniform vec3 u_light_pos;
-     uniform vec3 u_light_front;
-     uniform vec3 u_light_color;
-     uniform vec4 u_light_angle; //start,end,phi,theta
-     uniform vec2 u_light_att; //start,end
-     uniform vec3 u_camera_eye;
-     uniform vec2 u_camera_planes; //far near
-     uniform vec3 u_fog_info;
-     uniform vec3 u_fog_color;
-     uniform vec2 u_specular;
-     uniform vec4 u_clipping_plane;
-
-     
     // need flag
-
-    uniform sampler2D opacity_texture;
-    uniform sampler2D specular_texture;
-    uniform sampler2D ambient_texture;
-    uniform sampler2D emissive_texture;
-    uniform mat4 u_normal_model;
-    uniform sampler2D normal_texture;
     uniform sampler2D displacement_texture;
-    uniform float u_normalmap_factor;
     uniform float u_displacementmap_factor;
-    uniform sampler2D detail_texture;
-    uniform vec3 u_detail_info;
     uniform sampler2D reflectivity_texture;
     uniform vec2 u_reflection_info;
     uniform sampler2D environment_texture;
@@ -309,13 +402,7 @@ static Renderer *renderSingleton = nil;    // static instance variable
     uniform samplerCube irradiance_cubemap;
     uniform sampler2D light_texture;
     uniform sampler2D depth_texture;
-    uniform vec4 u_velvet_info;
-    uniform float u_backlight_factor;
-    uniform float u_light_offset;
-    uniform float u_brightness_factor;
-    uniform float u_colorclip_factor;
-    
-
+     
     //shadow
     uniform sampler2D shadowMap;
     uniform vec2 u_shadow_params; // (1.0/(texture_size), bias)
@@ -422,6 +509,11 @@ static Renderer *renderSingleton = nil;    // static instance variable
     if(u!=-1)glUniform3f(u, scene.ambient.r * _instances[i].mat.ambient.r,
                          scene.ambient.g * _instances[i].mat.ambient.g,
                          scene.ambient.b * _instances[i].mat.ambient.b);
+    u = glGetUniformLocation(program, "u_diffuse_color");
+    if(u!=-1)glUniform3f(u, _instances[i].mat.diffuse.x, _instances[i].mat.diffuse.y, _instances[i].mat.diffuse.z);
+    u = glGetUniformLocation(program, "u_velvet_info");
+    if(u!=-1)glUniform4f(u, _instances[i].mat.velvet.x, _instances[i].mat.velvet.y, _instances[i].mat.velvet.z,
+                         40.6);
     u = glGetUniformLocation(program, "u_mat_specular");
     if(u!=-1)glUniform1f(u, _instances[i].mat.specular);
     u = glGetUniformLocation(program, "u_mat_shininess");
@@ -525,33 +617,30 @@ static Renderer *renderSingleton = nil;    // static instance variable
 
         /****** UNIFORMS ********/
         //if (!_shouldSetUniforms)
-            //[self setWebGLUniforms:_program index:i proj:projection];
+           // [self setWebGLUniforms:_program index:i proj:projection];
     
-        glUseProgram( currShader.program);
-        [self setUniforms:currShader.program index:i proj:projection withLight:0];
 
-        if (_instances[i].mesh == nil)
+
+        if (_instances[i].mesh.material.drawLines)
         {
-            _VAO = [_instances[i].line getVAO];
-            _verticesVBO = [_instances[i].line getVerticesVBO];
-            Line *l = _instances[i].line;
-            glBindVertexArrayOES( _VAO );
-            glBindBuffer( GL_ARRAY_BUFFER, _verticesVBO );
-            stride = sizeof(GLfloat) * 3;
-            glEnableVertexAttribArray( a_vertex );
-            // Specify how the GPU looks up the data
-            glVertexAttribPointer(
-                                  a_vertex, // the currently bound buffer holds the data
-                                  3,                       // number of coordinates per vertex
-                                  GL_FLOAT,                // the data type of each component
-                                  GL_FALSE,                // can the data be scaled
-                                  stride,                     // how many bytes per vertex (2 floats per vertex)
-                                  NULL);
-            glLineWidth(20.0);
-            glDrawArrays(GL_LINES, 0, 2); // render
+            glUseProgram( currShader.program);
+            [self setUniforms:currShader.program index:i proj:projection withLight:0];
+            //drawLines
+            glDrawElements( GL_LINE_LOOP, _indexBufferSize, GL_UNSIGNED_INT, NULL );
+            if (_instances[i].mesh.isAnnotation)
+                //draw annotation
+                [self drawAnnotationFromInstance:_instances[i] withProjection:projection];
+
+
         }
-        else        
+        else
+        {
+            glUseProgram( currShader.program);
+            [self setUniforms:currShader.program index:i proj:projection withLight:0];
+            //[self setWebGLUniforms:currShader.program index:i proj:projection];
             glDrawElements( GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, NULL );
+        }
+            
 
         
         //clear shit
@@ -576,6 +665,30 @@ static Renderer *renderSingleton = nil;    // static instance variable
     /* END SCREEN BUFFER */   
      
     
+}
+
+- (void)drawAnnotationFromInstance:(RenderInstance)instance withProjection:(GLKMatrix4)p
+{
+    UILabel *currAnnotation = [[ResourceManager resources].scene.annotationLabels objectAtIndex:instance.mesh.annotationNumber];
+    
+    
+    //get screen position of annotation
+    Camera *cam = [[ResourceManager resources].scene getCamera:0];
+    GLKMatrix4 v = GLKMatrix4MakeLookAt(cam.position.x, cam.position.y, cam.position.z,
+                                        cam.lookAt.x, cam.lookAt.y, cam.lookAt.z,
+                                        0.0f, 1.0f, 0.0f);
+    GLKMatrix4 mv = GLKMatrix4Multiply(v, instance.model);
+    GLKMatrix4 mvp = GLKMatrix4Multiply(p, mv);
+    //transform to clipping coordinates
+    GLKVector3 cv = instance.mesh.annotationEndPoint;
+    GLKVector4 cc = GLKMatrix4MultiplyVector4(mvp, GLKVector4Make(cv.x, cv.y, cv.z, 1.0));
+    GLKVector4 ccW = GLKVector4Make(cc.x/cc.w,cc.y/cc.w,cc.z/cc.w,cc.w/cc.w);
+    int winX = (int) ((( ccW.x + 1 ) / 2.0) * 1024.0 );
+    int winY = (int) ((( 1 - ccW.y ) / 2.0) * 768.0 );
+    CGRect frame = currAnnotation.frame;
+    frame.origin.x = winX-frame.size.width/2;
+    frame.origin.y = winY-2;
+    currAnnotation.frame = frame;
 }
 
 - (void)addInstance:(RenderInstance)toAdd

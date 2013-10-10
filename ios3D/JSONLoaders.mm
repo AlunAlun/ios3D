@@ -8,6 +8,23 @@
 @end
 
 @implementation JSONComponent
+
+@end
+
+@implementation JSONComponentAnnotation
+-(void)loadAnnotation:(NSDictionary *)input
+{
+    NSArray *startArray = [input valueForKey:@"start"];
+    self.startPosition = GLKVector3Make([[startArray valueForKey:@"0"] floatValue],
+                                      [[startArray valueForKey:@"1"] floatValue],
+                                      [[startArray valueForKey:@"2"] floatValue]);
+
+    NSArray *endArray = [input valueForKey:@"end"];
+    self.endPosition = GLKVector3Make([[endArray valueForKey:@"0"] floatValue],
+                                      [[endArray valueForKey:@"1"] floatValue],
+                                      [[endArray valueForKey:@"2"] floatValue]);
+    self.text = [input valueForKey:@"text"];
+}
 @end
 
 
@@ -142,6 +159,7 @@
     self.color = GLKVector3Make([[colorArray objectAtIndex:0] floatValue],
                                 [[colorArray objectAtIndex:1] floatValue],
                                 [[colorArray objectAtIndex:2] floatValue]);
+
     
     self.extra_factor = [[input valueForKey:@"extra_factor"] floatValue];
     self.velvet_additive = [[input valueForKey:@"extra_factor"] boolValue];

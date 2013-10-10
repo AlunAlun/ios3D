@@ -23,7 +23,7 @@ varying highp vec3 v_pos;
 uniform highp mat4 u_depthBiasMVP;
 varying highp vec4 v_shadowCoord;
 
-#if defined (USE_DIFFUSE_TEXTURE) | defined (USE_DETAIL_TEXTURE) | defined (USE_SPECULAR_TEXTURE)
+#if defined (USE_DIFFUSE_TEXTURE) | defined (USE_DETAIL_TEXTURE) | defined (USE_SPECULAR_TEXTURE) | defined (USE_NORMAL_TEXTURE)
 
 varying mediump vec2 v_fragmentTexCoord0;
 #endif

@@ -112,7 +112,11 @@
     _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(cam.fov),
                                                   (float)width/(float)height,
                                                   cam.clipNear, cam.clipFar);
-        
+    
+    //add annotation labels
+    for (UILabel *label in [ResourceManager resources].scene.annotationLabels)
+        [view addSubview:label];
+    
     //gestures/input
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(Tapped:)];
     tap.numberOfTapsRequired = 2;
@@ -208,6 +212,7 @@
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    
     //time set
     CFTimeInterval previousTimestamp = CFAbsoluteTimeGetCurrent();
     

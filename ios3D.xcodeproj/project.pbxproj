@@ -17,9 +17,11 @@
 		A719040517031DEC00C8A590 /* SimpleCube.m in Sources */ = {isa = PBXBuildFile; fileRef = A719040417031DEC00C8A590 /* SimpleCube.m */; };
 		A73FA6CA1711D19D007148CF /* floor500h-spike.obj in Resources */ = {isa = PBXBuildFile; fileRef = A73FA6C91711D19D007148CF /* floor500h-spike.obj */; };
 		A73FA6D017121812007148CF /* floor-rot.obj in Resources */ = {isa = PBXBuildFile; fileRef = A73FA6CF17121812007148CF /* floor-rot.obj */; };
+		A757E2FA17B557B100CF657E /* lee-colour.json in Resources */ = {isa = PBXBuildFile; fileRef = A757E2F917B557B100CF657E /* lee-colour.json */; };
 		A767DFDB17A17892009FF3F0 /* lee_annot.json in Resources */ = {isa = PBXBuildFile; fileRef = A767DFDA17A17892009FF3F0 /* lee_annot.json */; };
 		A767DFDD17A1795C009FF3F0 /* lee_annot-expanded.json in Resources */ = {isa = PBXBuildFile; fileRef = A767DFDC17A1795C009FF3F0 /* lee_annot-expanded.json */; };
-		A767DFE017A17B6F009FF3F0 /* Line.mm in Sources */ = {isa = PBXBuildFile; fileRef = A767DFDF17A17B6F009FF3F0 /* Line.mm */; };
+		A76A93FF17A9332C00658B01 /* guitarAnnoted.json in Resources */ = {isa = PBXBuildFile; fileRef = A76A93FE17A9332C00658B01 /* guitarAnnoted.json */; };
+		A76A940117A9347400658B01 /* guitarAnnoted_expanded.json in Resources */ = {isa = PBXBuildFile; fileRef = A76A940017A9347400658B01 /* guitarAnnoted_expanded.json */; };
 		A77813631708F19500C9DA5E /* detail_jeans.png in Resources */ = {isa = PBXBuildFile; fileRef = A77813621708F19500C9DA5E /* detail_jeans.png */; };
 		A77813651708F19A00C9DA5E /* detail_cloth.png in Resources */ = {isa = PBXBuildFile; fileRef = A77813641708F19A00C9DA5E /* detail_cloth.png */; };
 		A77813681709E7F800C9DA5E /* ControlPanel.mm in Sources */ = {isa = PBXBuildFile; fileRef = A77813671709E7F700C9DA5E /* ControlPanel.mm */; };
@@ -32,6 +34,7 @@
 		A788172D1761FB4A0034B854 /* cube-10.obj in Resources */ = {isa = PBXBuildFile; fileRef = A788172C1761FB4A0034B854 /* cube-10.obj */; };
 		A788172F1761FBD60034B854 /* cube-3.obj in Resources */ = {isa = PBXBuildFile; fileRef = A788172E1761FBD60034B854 /* cube-3.obj */; };
 		A78817311761FDD80034B854 /* cube-1.obj in Resources */ = {isa = PBXBuildFile; fileRef = A78817301761FDD80034B854 /* cube-1.obj */; };
+		A797A4D017AA72C8005B09D9 /* webGLPixelShader.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A797A4CF17AA72C8005B09D9 /* webGLPixelShader.glsl */; };
 		A798A2A91701F2FE002DB505 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2A81701F2FD002DB505 /* UIKit.framework */; };
 		A798A2AB1701F2FE002DB505 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2AA1701F2FE002DB505 /* Foundation.framework */; };
 		A798A2AD1701F2FE002DB505 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A798A2AC1701F2FE002DB505 /* CoreGraphics.framework */; };
@@ -66,7 +69,7 @@
 		A7B721A41795618600723E8B /* JSONLoaders.mm in Sources */ = {isa = PBXBuildFile; fileRef = A7B721A31795618600723E8B /* JSONLoaders.mm */; };
 		A7CF5ED11794630600510A58 /* bunny_al_smooth.obj in Resources */ = {isa = PBXBuildFile; fileRef = A7CF5ED01794630600510A58 /* bunny_al_smooth.obj */; };
 		A7CF5ED3179467E100510A58 /* webGLVertexShader.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A7CF5ED2179467E100510A58 /* webGLVertexShader.glsl */; };
-		A7CF5ED51794682500510A58 /* webGLPixelShader.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A7CF5ED41794682500510A58 /* webGLPixelShader.glsl */; };
+		A7CF5ED51794682500510A58 /* webGLPixelShaderHAK.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A7CF5ED41794682500510A58 /* webGLPixelShaderHAK.glsl */; };
 		A7F7DA8317298C39001C3CD9 /* ShaderScreenSpaceVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A7F7DA8217298C38001C3CD9 /* ShaderScreenSpaceVertex.glsl */; };
 		A7F7DA8517298C58001C3CD9 /* ShaderScreenSpaceFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A7F7DA8417298C58001C3CD9 /* ShaderScreenSpaceFragment.glsl */; };
 		A7F7DA87172AA06A001C3CD9 /* ShaderShadowMapVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = A7F7DA86172AA06A001C3CD9 /* ShaderShadowMapVertex.glsl */; };
@@ -109,10 +112,11 @@
 		A719040417031DEC00C8A590 /* SimpleCube.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SimpleCube.m; sourceTree = "<group>"; };
 		A73FA6C91711D19D007148CF /* floor500h-spike.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "floor500h-spike.obj"; sourceTree = "<group>"; };
 		A73FA6CF17121812007148CF /* floor-rot.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "floor-rot.obj"; sourceTree = "<group>"; };
+		A757E2F917B557B100CF657E /* lee-colour.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "lee-colour.json"; sourceTree = "<group>"; };
 		A767DFDA17A17892009FF3F0 /* lee_annot.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = lee_annot.json; sourceTree = "<group>"; };
 		A767DFDC17A1795C009FF3F0 /* lee_annot-expanded.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "lee_annot-expanded.json"; sourceTree = "<group>"; };
-		A767DFDE17A17B6F009FF3F0 /* Line.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Line.h; sourceTree = "<group>"; };
-		A767DFDF17A17B6F009FF3F0 /* Line.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Line.mm; sourceTree = "<group>"; };
+		A76A93FE17A9332C00658B01 /* guitarAnnoted.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = guitarAnnoted.json; sourceTree = "<group>"; };
+		A76A940017A9347400658B01 /* guitarAnnoted_expanded.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = guitarAnnoted_expanded.json; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.javascript; };
 		A77813621708F19500C9DA5E /* detail_jeans.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = detail_jeans.png; sourceTree = "<group>"; };
 		A77813641708F19A00C9DA5E /* detail_cloth.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = detail_cloth.png; sourceTree = "<group>"; };
 		A77813661709E7F700C9DA5E /* ControlPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlPanel.h; sourceTree = "<group>"; };
@@ -127,6 +131,7 @@
 		A788172C1761FB4A0034B854 /* cube-10.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "cube-10.obj"; sourceTree = "<group>"; };
 		A788172E1761FBD60034B854 /* cube-3.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "cube-3.obj"; sourceTree = "<group>"; };
 		A78817301761FDD80034B854 /* cube-1.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "cube-1.obj"; sourceTree = "<group>"; };
+		A797A4CF17AA72C8005B09D9 /* webGLPixelShader.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = webGLPixelShader.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		A798A2A51701F2FD002DB505 /* ios3D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ios3D.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A798A2A81701F2FD002DB505 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		A798A2AA1701F2FE002DB505 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -173,7 +178,7 @@
 		A7B721A31795618600723E8B /* JSONLoaders.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JSONLoaders.mm; sourceTree = "<group>"; };
 		A7CF5ED01794630600510A58 /* bunny_al_smooth.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = bunny_al_smooth.obj; sourceTree = "<group>"; };
 		A7CF5ED2179467E100510A58 /* webGLVertexShader.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = webGLVertexShader.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		A7CF5ED41794682500510A58 /* webGLPixelShader.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = webGLPixelShader.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		A7CF5ED41794682500510A58 /* webGLPixelShaderHAK.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = webGLPixelShaderHAK.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		A7F7DA8217298C38001C3CD9 /* ShaderScreenSpaceVertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ShaderScreenSpaceVertex.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		A7F7DA8417298C58001C3CD9 /* ShaderScreenSpaceFragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ShaderScreenSpaceFragment.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		A7F7DA86172AA06A001C3CD9 /* ShaderShadowMapVertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ShaderShadowMapVertex.glsl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -223,9 +228,12 @@
 		A716437717901A5300F381EA /* Scenes */ = {
 			isa = PBXGroup;
 			children = (
+				A76A93FE17A9332C00658B01 /* guitarAnnoted.json */,
+				A76A940017A9347400658B01 /* guitarAnnoted_expanded.json */,
 				A716437817901A6F00F381EA /* lee-expanded.json */,
 				A767DFDC17A1795C009FF3F0 /* lee_annot-expanded.json */,
 				A767DFDA17A17892009FF3F0 /* lee_annot.json */,
+				A757E2F917B557B100CF657E /* lee-colour.json */,
 				A716437917901A6F00F381EA /* lee.json */,
 			);
 			name = Scenes;
@@ -293,7 +301,8 @@
 				A7B165EB170E2FE00058D8C9 /* SceneGraph */,
 				A798A2AF1701F2FE002DB505 /* Supporting Files */,
 				A7CF5ED2179467E100510A58 /* webGLVertexShader.glsl */,
-				A7CF5ED41794682500510A58 /* webGLPixelShader.glsl */,
+				A7CF5ED41794682500510A58 /* webGLPixelShaderHAK.glsl */,
+				A797A4CF17AA72C8005B09D9 /* webGLPixelShader.glsl */,
 				A778136E170A44AD00C9DA5E /* ShaderUberVertex.glsl */,
 				A7781370170A44CC00C9DA5E /* ShaderUberFragment.glsl */,
 				A7F7DA8217298C38001C3CD9 /* ShaderScreenSpaceVertex.glsl */,
@@ -325,8 +334,6 @@
 				A71903FE17031B3100C8A590 /* Node.mm */,
 				A719040017031CCC00C8A590 /* Scene.h */,
 				A719040117031CCC00C8A590 /* Scene.mm */,
-				A767DFDE17A17B6F009FF3F0 /* Line.h */,
-				A767DFDF17A17B6F009FF3F0 /* Line.mm */,
 				A7B165E5170D91880058D8C9 /* Mesh.h */,
 				A7B165E6170D91880058D8C9 /* Mesh.mm */,
 				A7B165E8170E283B0058D8C9 /* Camera.h */,
@@ -500,9 +507,13 @@
 				A716437B17901A6F00F381EA /* lee.json in Resources */,
 				A7CF5ED11794630600510A58 /* bunny_al_smooth.obj in Resources */,
 				A7CF5ED3179467E100510A58 /* webGLVertexShader.glsl in Resources */,
-				A7CF5ED51794682500510A58 /* webGLPixelShader.glsl in Resources */,
+				A7CF5ED51794682500510A58 /* webGLPixelShaderHAK.glsl in Resources */,
 				A767DFDB17A17892009FF3F0 /* lee_annot.json in Resources */,
 				A767DFDD17A1795C009FF3F0 /* lee_annot-expanded.json in Resources */,
+				A76A93FF17A9332C00658B01 /* guitarAnnoted.json in Resources */,
+				A76A940117A9347400658B01 /* guitarAnnoted_expanded.json in Resources */,
+				A797A4D017AA72C8005B09D9 /* webGLPixelShader.glsl in Resources */,
+				A757E2FA17B557B100CF657E /* lee-colour.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,7 +540,6 @@
 				A7B165EE170E30690058D8C9 /* Light.m in Sources */,
 				A7B165F11710766C0058D8C9 /* Renderer.mm in Sources */,
 				A7B721A41795618600723E8B /* JSONLoaders.mm in Sources */,
-				A767DFE017A17B6F009FF3F0 /* Line.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

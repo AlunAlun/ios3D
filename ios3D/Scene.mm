@@ -28,10 +28,11 @@
 - (id)initWitName:(NSString*)name {
     if ((self = [super init])) {
         self.name = name;
-        backgroundColor = GLKVector3Make(1.0, 1.0, 1.0);
+        self.backgroundColor = GLKVector3Make(1.0, 1.0, 1.0);
         self.ambient = GLKVector3Make(1.0, 1.0, 1.0);
-        lightMoved = true;
-        camMoved = true;
+        self.lightMoved = true;
+        self.camMoved = true;
+        self.annotationLabels = [[NSMutableArray alloc] init];
     }
     return self;
 }

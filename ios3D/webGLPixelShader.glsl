@@ -33,7 +33,7 @@ precision highp float;
  #endif
  
  #ifdef USE_NORMAL_TEXTURE
- uniform mat4 u_normal_model;
+ uniform mat3 u_normal_model;
  uniform sampler2D normal_texture;
  #endif
  
@@ -296,13 +296,13 @@ precision highp float;
  N = perturb_normal(N, v_pos, USE_NORMAL_TEXTURE, normalmap_pixel );
  //N is in world space
  #else
- N = (normalmap_pixel - vec3(0.5)) * 2.0;
+ N = normalize( (normalmap_pixel - vec3(0.5)) * 2.0);
  //N is in object space so we need to convert it to world space
- N = (u_normal_model * vec4(N,1.0)).xyz;
+ //N = (u_normal_model * vec4(N,1.0)).xyz;
  #endif
  
  #ifdef USE_NORMALMAP_FACTOR
- N = normalize( mix(v_normal, N, u_normalmap_factor) );
+ N = mix(v_normal, N, u_normalmap_factor) ;
  #endif
  #endif
  
@@ -419,7 +419,7 @@ precision highp float;
  spec_factor = 0.0;
  #endif
  
- vec3 light;
+ vec3 light = vec3(0.0,0.0,0.0);
  
  //ambient light
  #ifdef FIRST_PASS
@@ -604,6 +604,7 @@ precision highp float;
  #endif
  
  gl_FragColor = vec4(final_color, alpha); //regular color
+
  //gl_FragColor = vec4(1.0,0.0,1.0,1.0);
  //gl_FragColor = vec4(-E,1.0); //front vector
  //gl_FragColor = vec4(v_pos * 0.005,1.0); //pos vector

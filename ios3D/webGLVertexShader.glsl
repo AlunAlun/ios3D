@@ -21,7 +21,8 @@ precision highp float;
  uniform mat4 u_mvp;
  uniform mat4 u_model;
  uniform mat4 u_viewprojection;
- uniform mat4 u_normal_model;
+ //uniform mat4 u_normal_model;
+uniform mat3 u_normal_model;
  
  uniform mat3 u_texture_matrix; //matrix to modify uvs
  varying vec2 v_uvs_transformed;
@@ -43,7 +44,8 @@ precision highp float;
  #ifdef NO_NORMALS
  v_normal = vec3(0.,1.,0.);
  #else
- v_normal = (u_normal_model * vec4(a_normal,1.0)).xyz;
+ //v_normal = (u_normal_model * vec4(a_normal,1.0)).xyz;
+ v_normal = u_normal_model * a_normal;
  #endif
  
  #ifndef USE_TANGENT_STREAM

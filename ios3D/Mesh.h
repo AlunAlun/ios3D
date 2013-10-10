@@ -14,6 +14,9 @@
 
 @property (nonatomic, strong) Material *material;
 @property (nonatomic, strong) Shader *shader;
+@property (assign) bool isAnnotation;
+@property (assign) int annotationNumber;
+@property (assign) GLKVector3 annotationEndPoint;
 
 -(id)initWithDataBuffer:(std::vector<GLfloat>)db indexBuffer:(std::vector<GLuint>)ib material:(Material*)mat;
 -(void)LoadWaveFrontOBJ:(NSString*)fileName;

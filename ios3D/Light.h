@@ -16,6 +16,7 @@
 @property(assign) GLfloat near;
 @property(assign) GLfloat far;
 @property(assign) GLfloat angle;
+@property(assign) GLfloat frustrumSize;
 @property(assign) GLKVector3 diffuseColor;
 
 @end

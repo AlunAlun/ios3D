@@ -34,6 +34,12 @@
 -(GLuint)getVAO{return _VAO;}
 -(GLuint)getIndexBufferSize{return _indexBufferSize;}
 
+-(id)init
+{
+    if ((self = [super init])) {
+    }
+    return self;
+}
 -(id)initWithDataBuffer:(std::vector<GLfloat>)db indexBuffer:(std::vector<GLuint>)ib material:(Material *)mat;
 {
     if ((self = [super init])) {

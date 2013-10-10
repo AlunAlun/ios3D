@@ -70,6 +70,10 @@ typedef enum {
 @end
 
 @interface JSONComponentAnnotation : JSONComponent
+@property(nonatomic,assign) GLKVector3 startPosition;
+@property(nonatomic,assign) GLKVector3 endPosition;
+@property(nonatomic,strong) NSString *text;
+- (void)loadAnnotation:(NSDictionary*)input;
 @end
 
 @interface JSONComponentTransform : JSONComponent

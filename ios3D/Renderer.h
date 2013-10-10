@@ -10,7 +10,6 @@
 #import <GLKit/GLKit.h>
 #import "Material.h"
 #import "Mesh.h"
-#import "Line.h"
 
 #import <stdio.h>
 #include <map>
@@ -23,7 +22,6 @@ typedef struct
     Material *mat;
     GLKMatrix4 model;
     Mesh *mesh;
-    Line *line;
 } RenderInstance;
 
 @interface Renderer : NSObject {
